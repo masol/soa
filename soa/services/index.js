@@ -71,6 +71,7 @@ async function load (fastify, srvName, sdl = {}) {
           try {
             const service = require(`./${srvName}`)
             if (service && fastify._.isFunction(service.load)) {
+              fastify.log.info('加载%s服务,启动参数:%o', srvName, sdl)
               return await service.load(fastify, sdl)
             }
           } catch (e) {

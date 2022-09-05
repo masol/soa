@@ -91,7 +91,7 @@ async function load (fastify, sdl = {}) {
       fastify.log.warn('elastic热部署期间发生错误:%s', e)
     }
   })
-  fastify.log.debug('heathinfo=%o', healthInfo)
+  fastify.log.debug('elastic heathinfo=%o', healthInfo)
   return { inst: client }
 }
 

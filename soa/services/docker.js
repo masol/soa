@@ -19,6 +19,5 @@ module.exports.load = function (fastify, sdl = {}) {
   } else {
     dockerInst = new Dockerode(opt)
   }
-  fastify.log.info('启用Docker服务,启动参数:%o', opt)
   return { inst: dockerInst }
 }
