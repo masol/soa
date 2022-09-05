@@ -1,0 +1,38 @@
+{
+  "name": "pv-soa",
+  "version": "0.0.1",
+  "description": "prodvest默认soa支持.",
+  "main": "index.js",
+  "scripts": {
+    "test": "tap test/**/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.wware.org/pub/soa.git"
+  },
+  "keywords": [
+    "soa"
+  ],
+  "author": "lizhutang",
+  "license": "MIT",
+  "dependencies": {
+    "@fastify/static": "^6.5.0",
+    "@supercharge/goodies": "^1.11.1",
+    "blend-promise-utils": "^1.29.0",
+    "dockerode": "^3.3.4",
+    "http-errors-enhanced": "^1.0.9",
+    "lodash": "^4.17.21",
+    "memory-cache": "^0.2.0",
+    "shelljs": "^0.8.5"
+  },
+  "devDependencies": {
+    "@types/node": "^18.7.13",
+    "@typescript-eslint/eslint-plugin": "^5.35.1",
+    "@typescript-eslint/parser": "^5.35.1",
+    "eslint": "^8.0.1",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-n": "^15.0.0",
+    "eslint-plugin-promise": "^6.0.0"
+  }
+}
