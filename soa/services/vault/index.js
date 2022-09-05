@@ -43,7 +43,7 @@ async function load (fastify, sdl = {}) {
   })
 
   if (!health) {
-    fastify.log.error('因此无法初始化vault对象。后续vault调用无效。')
+    fastify.log.error('docker无法部署vault服务。后续vault调用无效。')
     return { inst: null }
   }
 
@@ -66,7 +66,7 @@ async function load (fastify, sdl = {}) {
       return null
     })
     const keys = keystr ? JSON.parse(keystr) : null
-    fastify.log.debug('keys=%s', keys)
+    fastify.log.debug('vault cached keys=%s', keys)
     if (!_.isArray(keys)) {
       const msg = 'Vault Service已初始化,但是无法获取其key进行解封，自动处理不会出现此问题,人工配置问题?'
       fastify.log.error(msg)
