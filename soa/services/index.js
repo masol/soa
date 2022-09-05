@@ -29,7 +29,8 @@ const intPackages = {
 const intServices = {
   docker: true,
   static: true,
-  elastic: true
+  elastic: true,
+  vault: true
 }
 
 async function loadPkg (fastify, pkgName, isES6) {

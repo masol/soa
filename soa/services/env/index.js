@@ -11,23 +11,24 @@
 
 class Env {
   static inst = null
-  static get (fastify) {
+  static get (fastify, sdl = {}) {
     if (!Env.inst) {
-      Env.inst = new Env(fastify)
+      Env.inst = new Env(fastify, sdl)
     }
     return Env.inst
   }
 
   constructor (fastify, sdl = {}) {
-    this.local = !!sdl.local
+    const conf = sdl.conf || {}
+    this.local = !!conf.local
     this.srvcfg = {
-      deploy: sdl.deploy || 'docker',
-      index: sdl.index || 'elastic',
-      db: sdl.db || 'postgres',
-      cache: sdl.cache || 'redis',
-      fs: sdl.fs || 'local',
-      static: sdl.static || 'local',
-      secure: sdl.secure || false
+      deploy: conf.deploy || 'docker',
+      index: conf.index || 'elastic',
+      db: conf.db || 'postgres',
+      cache: conf.cache || 'redis',
+      fs: conf.fs || 'local',
+      static: conf.static || 'local',
+      secure: conf.secure || false
     }
     if (this.local) {
       this.srvcfg.deploy = 'docker'

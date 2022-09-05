@@ -61,7 +61,7 @@ async function load (fastify, sdl = {}) {
   let client = await buildClient(fastify, Client, sdl)
   const healthInfo = await client.cat.health().catch(async err => {
     const env = await soa.get('env')
-    fastify.log.warn('elastic健康检查错误,开始热部署，方式:%s', env.deploy, err)
+    fastify.log.warn('elastic健康检查错误,开始%s热部署。错误:%s', env.deploy, err)
     try {
       const deploy = require(`./${env.deploy}`)
       let needRebuild = false
