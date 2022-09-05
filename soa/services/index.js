@@ -60,6 +60,7 @@ async function load (fastify, srvName, sdl = {}) {
       return env.load(fastify, sdl)
     default:
       if (intPlugins[srvName]) {
+        // const mload = fastify.$.memoize(loadPlugin, (_, name) => name)
         return { inst: await loadPlugin(fastify, intPlugins[srvName], sdl) }
       } else {
         const pkgInfo = intPackages[srvName]

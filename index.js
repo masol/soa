@@ -14,7 +14,8 @@ const goodies = require('@supercharge/goodies')
 const shelljs = require('shelljs')
 const SOA = require('./soa')
 const extShelljs = require('./lib/pkg')
-const extProm = require('./lib/promise')
+// 是否采用https://github.com/sindresorhus/pify来扩展promise使用?
+// const extProm = require('./lib/promise')
 const extConfig = require('./lib/config')
 const _ = require('lodash')
 
@@ -25,7 +26,7 @@ async function decorate (fastify, opts) {
 
   const $ = _.extend({}, promiseUtils, goodies)
   // 为$扩展lift系列函数。
-  extProm.ext(fastify, $)
+  // extProm.ext(fastify, $)
   fastify.decorate('$', $)
 
   const error = await import('http-errors-enhanced')
