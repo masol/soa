@@ -30,6 +30,7 @@ const intServices = {
   docker: true,
   static: true,
   elastic: true,
+  redis: true,
   vault: true
 }
 
