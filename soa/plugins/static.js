@@ -9,7 +9,7 @@
 // Created On : 5 Sep 2022 By 李竺唐 of SanPolo.Co.LTD
 // File: static
 
-// const path = require('path')
+const { loadPkg } = require('../pkgs')
 
 /**
  * 额外的加载static的代码。
@@ -29,7 +29,7 @@ module.exports.load = async function (fastify, sdl = {}) {
     // subPath.push({ root: path.join(cfgutil.path(), '..', '..', 'root'), prefix: '/admin/' })
   }
   if (conf.root || subPath.length > 0) {
-    const fastifyStatic = require('@fastify/static')
+    const fastifyStatic = await loadPkg(fastify, '@fastify/static', false)
     if (conf.root) {
       fastify.register(fastifyStatic, conf)
       fastify.log.info('启用静态(static)插件,启动参数:%o', conf)

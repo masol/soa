@@ -10,7 +10,17 @@
 // File: load
 
 const url = require('url')
-const defService = require('./services')
+
+const parts = [require('./services'), require('./other'), require('./pkgs'), require('./plugins')]
+
+async function loadef (fastify, srvName, sdl = {}) {
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i]
+    if (part.has(srvName)) {
+      return await part.load(fastify, srvName, sdl)
+    }
+  }
+}
 
 /**
  * 将sdl加载为服务入口。
@@ -22,7 +32,7 @@ async function load (fastify, srvName, sdl = {}) {
   const { log, _, error } = fastify
   if (sdl.disable) {
     log.info('服务"%s"已被禁用，忽略之。', srvName)
-    return null
+    return { inst: null }
   }
   const loaderDL = sdl.loader
   if (_.isString(loaderDL)) {
@@ -32,7 +42,7 @@ async function load (fastify, srvName, sdl = {}) {
   } else if (_.isObject(loaderDL)) {
     throw new error.NotImplementedError('尚未实现从loaderDL JSON中获取loader.')
   }
-  return await defService.load(fastify, srvName, sdl)
+  return await loadef(fastify, srvName, sdl)
 }
 
 module.exports.load = load

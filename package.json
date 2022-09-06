@@ -16,7 +16,6 @@
   "author": "lizhutang",
   "license": "MIT",
   "dependencies": {
-    "@fastify/static": "^6.5.0",
     "@supercharge/goodies": "^1.11.1",
     "blend-promise-utils": "^1.29.0",
     "dockerode": "^3.3.4",

@@ -25,7 +25,7 @@ class Env {
       deploy: conf.deploy || 'docker',
       index: conf.index || 'elastic',
       db: conf.db || 'postgres',
-      cache: conf.cache || 'redis',
+      share: conf.share || 'redis',
       fs: conf.fs || 'local',
       static: conf.static || 'local',
       secure: conf.secure || false
@@ -59,8 +59,8 @@ class Env {
     return this.srvcfg.db
   }
 
-  get cache () {
-    return this.srvcfg.cache
+  get share () {
+    return this.srvcfg.share
   }
 
   get fs () {

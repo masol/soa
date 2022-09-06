@@ -10,7 +10,7 @@
 // File: index
 
 const cache = require('memory-cache')
-const defSrvs = require('./load')
+const internal = require('./load')
 
 const soa = {}
 function instance (fastify) {
@@ -50,7 +50,7 @@ function instance (fastify) {
     }
 
     soa.load = async (srvName, sdl = {}) => {
-      const srvEntry = defSrvs.load(fastify, srvName, sdl)
+      const srvEntry = internal.load(fastify, srvName, sdl)
       // fastify.log.debug('加载结果"%s"=%o', srvName, srvEntry)
       if (srvEntry) {
         cache.put(srvName, srvEntry)
