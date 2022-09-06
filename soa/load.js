@@ -20,6 +20,7 @@ async function loadef (fastify, srvName, sdl = {}) {
       return await part.load(fastify, srvName, sdl)
     }
   }
+  fastify.log.warn('请求未定义loader的自定义服务%s。', srvName)
 }
 
 /**
@@ -45,4 +46,4 @@ async function load (fastify, srvName, sdl = {}) {
   return await loadef(fastify, srvName, sdl)
 }
 
-module.exports.load = load
+module.exports = load

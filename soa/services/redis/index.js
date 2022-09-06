@@ -18,8 +18,8 @@ async function buildClient (fastify, createClient, sdl = {}) {
   // const connectTimeout = opt.connectTimeout || 0 // 默认连接超时10分钟。
 
   // fastify.log.debug('new elastic instance with opt=%o', opt)
-  let deploying = false
   const client = createClient(opt)
+  let deploying = false
   const errorHandler = async (err) => {
     if (!deploying) { // 未执行部署，尝试部署。
       deploying = true
@@ -58,14 +58,40 @@ async function buildClient (fastify, createClient, sdl = {}) {
 }
 
 async function load (fastify, sdl = {}) {
-  const { _, log } = fastify
-  const redis = await fastify.shell.import('redis')
-  if (!redis || !_.isFunction(redis.createClient)) {
-    return { inst: null }
+  const { _, log, soa } = fastify
+  const pkg = sdl.package || 'ioredis'
+  let client
+  if (pkg === 'redis') {
+    const redis = await fastify.shell.import('redis')
+    if (!redis || !_.isFunction(redis.createClient)) {
+      return { inst: null }
+    }
+    // console.log('createClient=', redis.createClient)
+    // const cfgutil = fastify.config.util
+    client = await buildClient(fastify, redis.createClient, sdl)
+  } else {
+    const Redis = await fastify.shell.require('ioredis')
+    if (!Redis) {
+      return { inst: null }
+    }
+    client = await new Redis(sdl.conf)
+    client.on('error', async function (err) {
+      const env = await soa.get('env')
+      fastify.log.warn('redis无法连接到服务器,开始%s热部署。错误:%s', env.deploy, err)
+      try {
+        const deploy = require(`./${env.deploy}`)
+        const bSuc = await deploy.deploy(fastify, sdl)
+        if (!bSuc) { // 关闭client对error的监听，以禁用断线重连，使得connect函数可以退出继续。
+          fastify.log.warn('redis，无法成功热部署期。')
+        }
+      } catch (e) {
+        fastify.log.warn('redis热部署期间发生错误:%s', e)
+      }
+    })
+    await client.ping().catch(err => {
+      console.log('ioredis健康检查错误:', err)
+    })
   }
-  // console.log('createClient=', redis.createClient)
-  // const cfgutil = fastify.config.util
-  const client = await buildClient(fastify, redis.createClient, sdl)
   const pong = await client.ping().catch(err => {
     log.debug('redis健康检查错误:', err)
   })

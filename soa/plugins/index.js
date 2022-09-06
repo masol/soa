@@ -11,6 +11,7 @@
 
 const { loadPkg } = require('../pkgs')
 const staticPlugin = require('./static')
+const sessionPlugin = require('./session')
 
 const internal = {
   cors: '@fastify/cors',
@@ -19,7 +20,8 @@ const internal = {
   compress: '@fastify/compress',
   'rate-limit': '@fastify/rate-limit',
   static: staticPlugin.load,
-  cookie: '@fastify/cookie'
+  cookie: '@fastify/cookie',
+  session: sessionPlugin.load
 }
 
 async function loadPlugin (fastify, packageName, sdl = {}) {
@@ -33,6 +35,7 @@ async function loadPlugin (fastify, packageName, sdl = {}) {
 async function load (fastify, srvName, sdl = {}) {
   const { _, log } = fastify
   const handler = internal[srvName]
+  // console.log(srvName, 'sdl in plugin/index:', sdl)
   if (_.isFunction(handler)) {
     return { inst: await handler(fastify, srvName, sdl) }
   } else if (_.isString(handler)) {

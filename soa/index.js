@@ -10,7 +10,7 @@
 // File: index
 
 const cache = require('memory-cache')
-const internal = require('./load')
+const load = require('./load')
 
 const soa = {}
 function instance (fastify) {
@@ -23,8 +23,8 @@ function instance (fastify) {
         cache.put(srvName, srvEntry)
       }
       // fastify.log.debug('get srvName=%s,entry=%o', srvName, srvEntry)
-      if (!srvEntry && _.isFunction(soa.intEntry)) {
-        srvEntry = await soa.intEntry(fastify, srvName, config.util.dget(srvName))
+      if (!srvEntry) {
+        srvEntry = await load(fastify, srvName, config.util.dget(srvName))
         cache.put(srvName, srvEntry)
       }
       if (_.isObject(srvEntry)) {
@@ -50,7 +50,7 @@ function instance (fastify) {
     }
 
     soa.load = async (srvName, sdl = {}) => {
-      const srvEntry = internal.load(fastify, srvName, sdl)
+      const srvEntry = load(fastify, srvName, sdl)
       // fastify.log.debug('加载结果"%s"=%o', srvName, srvEntry)
       if (srvEntry) {
         cache.put(srvName, srvEntry)

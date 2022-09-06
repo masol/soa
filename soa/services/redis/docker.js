@@ -74,7 +74,7 @@ async function deploy (fastify, sdl = {}) {
         Name: 'always',
         MaximumRetryCount: 0
       },
-      Cmd: ['redis-server', '--save 60 1', '--loglevel warning'],
+      // Cmd: ['redis-server', '--save 60 1', '--loglevel warning'],
       HostConfig: {
         PortBindings: {
           '6379/tcp': [

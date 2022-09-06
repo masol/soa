@@ -13,6 +13,10 @@ const internal = {
   cryptoRandom: {
     pkg: 'crypto-random-string',
     module: true
+  },
+  'connect-redis': {
+    pkg: 'connect-redis',
+    module: true
   }
 }
 
