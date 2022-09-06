@@ -24,7 +24,7 @@ class Env {
     this.srvcfg = {
       deploy: conf.deploy || 'docker',
       index: conf.index || 'elastic',
-      db: conf.db || 'postgres',
+      db: conf.db || 'knex',
       share: conf.share || 'redis',
       fs: conf.fs || 'local',
       static: conf.static || 'local',

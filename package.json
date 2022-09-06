@@ -22,7 +22,8 @@
     "http-errors-enhanced": "^1.0.9",
     "lodash": "^4.17.21",
     "memory-cache": "^0.2.0",
-    "shelljs": "^0.8.5"
+    "shelljs": "^0.8.5",
+    "sqlite3": "^5.0.11"
   },
   "devDependencies": {
     "@types/node": "^18.7.13",

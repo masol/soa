@@ -21,6 +21,7 @@ const internal = {
   'rate-limit': '@fastify/rate-limit',
   static: staticPlugin.load,
   cookie: '@fastify/cookie',
+  // 'https-redirect': 'fastify-https-redirect',
   session: sessionPlugin.load
 }
 

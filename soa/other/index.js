@@ -12,7 +12,11 @@
 const env = require('./env')
 
 const internal = {
-  fastify: (fastify, srvName, sdl) => {
+  fastify: async (fastify, srvName, sdl) => {
+    // const conf = sdl.conf || {}
+    // if (conf.https || conf.http2) { // 注册'https-redirect'
+    // await fastify.soa.get('https-redirect')
+    // }
     return { inst: fastify }
   },
   env: env.load

@@ -17,6 +17,10 @@ const internal = {
   'connect-redis': {
     pkg: 'connect-redis',
     module: true
+  },
+  'knex-utils': {
+    pkg: 'knex-utils',
+    module: true
   }
 }
 

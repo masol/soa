@@ -13,7 +13,8 @@ const internal = {
   docker: true,
   elastic: true,
   redis: true,
-  vault: true
+  vault: true,
+  knex: true
 }
 
 async function load (fastify, srvName, sdl = {}) {
