@@ -20,15 +20,7 @@ module.exports.load = async function (fastify, srvName, sdl = {}) {
   // console.log('sdl=', sdl)
   if (!conf.secret) {
     log.warn('session::未配置固定的secret,这导致每次重启服务无法获取上次session.')
-    const cryptoRandom = await soa.get('cryptoRandom')
-    if (cryptoRandom) {
-      conf.secret = cryptoRandom({ length: 64 })
-    } else {
-      conf.secret = (Math.random() + 1).toString(36).substring(2)
-      while (conf.secret.length < 32) {
-        conf.secret += (Math.random() + 1).toString(36).substring(2)
-      }
-    }
+    conf.secret = _.cryptoRandom({ length: 64 })
   }
 
   if (_.isString(conf.store)) {

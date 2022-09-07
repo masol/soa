@@ -10,16 +10,16 @@
 // File: index
 
 const internal = {
-  cryptoRandom: {
-    pkg: 'crypto-random-string',
-    module: true
-  },
   'connect-redis': {
     pkg: 'connect-redis',
     module: true
   },
   'knex-utils': {
     pkg: 'knex-utils',
+    module: true
+  },
+  undici: {
+    pkg: 'undici',
     module: true
   }
 }

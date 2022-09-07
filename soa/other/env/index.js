@@ -28,7 +28,8 @@ class Env {
       share: conf.share || 'redis',
       fs: conf.fs || 'local',
       static: conf.static || 'local',
-      secure: conf.secure || false
+      sso: conf.sso || 'keycloak',
+      vault: conf.vault || false
     }
     if (this.local) {
       this.srvcfg.deploy = 'docker'
@@ -69,6 +70,10 @@ class Env {
 
   get static () {
     return this.srvcfg.static
+  }
+
+  get vault () {
+    return this.srvcfg.vault
   }
 }
 

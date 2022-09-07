@@ -20,6 +20,10 @@ const extConfig = require('./lib/config')
 const _ = require('lodash')
 
 async function decorate (fastify, opts) {
+  const cryptoRandom = await import('crypto-random-string')
+  _.cryptoRandom = cryptoRandom.default
+  // console.log('_.cryptoRandom=', _.cryptoRandom)
+  // console.log('_.cryptoRandom()=', _.cryptoRandom({ length: 64 }))
   fastify.decorate('_', _)
 
   extConfig.ext(fastify, opts)
