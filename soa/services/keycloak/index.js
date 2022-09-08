@@ -9,8 +9,8 @@
 // Created On : 7 Sep 2022 By 李竺唐 of SanPolo.Co.LTD
 // File: index
 
-const fs = require('fs').promises
-const path = require('path')
+// const fs = require('fs').promises
+// const path = require('path')
 
 async function health (fastify, sdl = {}) {
   const { soa, _ } = fastify
@@ -35,22 +35,8 @@ async function health (fastify, sdl = {}) {
 }
 
 async function prepareCFG (fastify, sdl) {
-  const { _, config } = fastify
-  const cfgutil = config.util
+  const { _ } = fastify
   const localcfg = _.clone(sdl)
-  localcfg.kconf = localcfg.kconf || {}
-  const kconf = localcfg.kconf
-  kconf.superuser = kconf.superuser || 'keycloak'
-  if (!kconf.password) {
-    const pwdir = cfgutil.path('config', 'active', 'keycloak')
-    await fs.mkdir(pwdir, { recursive: true }).catch(e => e) // 忽略EEXIST错误。
-    const pwdfile = path.join(pwdir, 'passwd')
-    kconf.password = await fs.readFile(pwdfile).catch(async e => {
-      const passwd = _.cryptoRandom({ length: 16 })
-      await fs.writeFile(pwdfile, passwd)
-      return passwd
-    })
-  }
 
   localcfg.conf = localcfg.conf || {}
   const conf = localcfg.conf
@@ -58,6 +44,7 @@ async function prepareCFG (fastify, sdl) {
   conf.disableSessionPlugin = true
   conf.appOrigin = conf.appOrigin || 'https://localhost:3000'
   conf.keycloakSubdomain = conf.keycloakSubdomain || 'https://localhost:3000/kc'
+  return localcfg
 }
 
 async function load (fastify, sdl = {}) {
@@ -70,20 +57,14 @@ async function load (fastify, sdl = {}) {
   console.log('keycloak=', keycloak)
 
   const opts = await prepareCFG(fastify, sdl)
+  console.log('keycloak opts=', opts)
+  // 确保数据库及keycloak服务启动。
+  await soa.get('knex')
   const kch = await health(fastify, opts)
   if (!kch) {
     // deploy keycloak
-    const env = await soa.get('env')
-    fastify.log.warn('keycloak健康检查错误,开始%s热部署。', env.deploy)
-    try {
-      const deploy = require(`./${env.deploy}`)
-      const bSuc = await deploy.deploy(fastify, opts)
-      if (!bSuc) {
-        return null
-      }
-    } catch (e) {
-      fastify.log.warn('keycloak热部署期间发生错误:%s', e)
-    }
+    fastify.log.error('keycloak健康检查错误,knex中pg数据库配置错误,无法恢复此错误!')
+    return { inst: null }
   }
   // keycloak健康检查。
   // 确保session服务已加载。

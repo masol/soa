@@ -16,10 +16,14 @@ async function findContainer (_, docker) {
 
 async function deploy (fastify, sdl = {}) {
   const { soa, _, $, log } = fastify
+
+  // 使用dock-compose命令行来部署。同时部署依赖的keycloak.
+  // 但是需要使用dockerode来exec以创建新用户及数据库。
   const docker = await soa.get('docker')
   if (!docker) {
     return false
   }
+
   let container = await findContainer(_, docker)
   if (!container) {
     const images = await docker.listImages().catch(e => {
@@ -47,31 +51,21 @@ async function deploy (fastify, sdl = {}) {
 
     const cmdenv = []
     const kconf = sdl.kconf
-    cmdenv.push(`KEYCLOAK_ADMIN=${kconf.superuser}`)
-    cmdenv.push(`KEYCLOAK_ADMIN_PASSWORD=${kconf.password}`)
+    console.log('kconf=', kconf)
+    if (kconf.superuser) cmdenv.push(`KEYCLOAK_ADMIN=${kconf.superuser}`)
+    if (kconf.password) cmdenv.push(`KEYCLOAK_ADMIN_PASSWORD=${kconf.password}`)
+    if (kconf.manuser) cmdenv.push(`KEYCLOAK_MANAGEMENT_USER=${kconf.manuser}`)
+    if (kconf.manpwd) cmdenv.push(`KEYCLOAK_MANAGEMENT_PASSWORD=${kconf.manpwd}`)
 
-    const Cmd = ['start']
-    if (kconf.db) {
-      Cmd.push(`--db=${kconf.db}`)
-    }
-    if (kconf.features) {
-      Cmd.push(`--features=${kconf.features}`)
-    }
-    if (kconf['db-url']) {
-      Cmd.push(`--db-url=${kconf['db-url']}`)
-    }
-    if (kconf['db-username']) {
-      Cmd.push(`--db-username=${kconf['db-username']}`)
-    }
-    if (kconf['db-password']) {
-      Cmd.push(`--db-password=${kconf['db-password']}`)
-    }
-    if (kconf['https-key-store-file']) {
-      Cmd.push(`--https-key-store-file=${kconf['https-key-store-file']}`)
-    }
-    if (kconf['https-key-store-password']) {
-      Cmd.push(`--https-key-store-password=${kconf['https-key-store-password']}`)
-    }
+    if (kconf.host) cmdenv.push(`KEYCLOAK_DATABASE_HOST=${kconf.host}`)
+    if (kconf.port) cmdenv.push(`KEYCLOAK_DATABASE_PORT=${kconf.port}`)
+    if (kconf.name) cmdenv.push(`KEYCLOAK_DATABASE_NAME=${kconf.name}`)
+    if (kconf.user) cmdenv.push(`KEYCLOAK_DATABASE_USER=${kconf.user}`)
+    if (kconf.dbpwd) cmdenv.push(`KEYCLOAK_DATABASE_PASSWORD=${kconf.dbpwd}`)
+
+    cmdenv.push('KEYCLOAK_HTTP_PORT=8080')
+    cmdenv.push('KEYCLOAK_BIND_ADDRESS=127.0.0.1')
+
     // log.debug('images=%o', images)
     container = await docker.createContainer({
       Image: imageTag,
@@ -88,7 +82,6 @@ async function deploy (fastify, sdl = {}) {
         MaximumRetryCount: 0
       },
       Env: cmdenv,
-      Cmd,
       HostConfig: {
         PortBindings: {
           '8080/tcp': [
@@ -121,6 +114,7 @@ async function deploy (fastify, sdl = {}) {
     await $.retry(_.bindKey(container, 'start'), { maxAttempts: 5, delayMs: 1000 })().catch(e => {
       log.error('start keycloak error:%s', e)
     })
+    log.debug('keycloak start ok')
     await $.delay(3000)
   }
 

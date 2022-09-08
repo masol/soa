@@ -12,14 +12,86 @@
 const fs = require('fs').promises
 const path = require('path')
 const util = require('../util')
-const imageTag = 'postgres:14.5'
 const tagName = 'pv-postgres'
 
-async function setUserpwd (fastify, container, userpwd) {
+function updcompose ({ kcdbpwd, kcpwd, kcmpwd }) {
+  return `version: '2'
+services:
+  postgresql:
+    image: bitnami/postgresql:14.5.0
+    container_name: pv-postgres
+    labels:
+      com.prodvest.project: "pv-postgres"
+    environment:
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_DATABASE=keycloak
+      - POSTGRESQL_PASSWORD=${kcdbpwd}
+    ports:
+      - "5432:5432"
+    volumes:
+      - 'pv_postgresql_data:/bitnami/postgresql'
+
+  keycloak:
+    image: bitnami/keycloak:19.0.1
+    container_name: pv-keycloak
+    labels:
+      com.prodvest.project: "pv-keycloak"
+    environment:
+      - KEYCLOAK_ADMIN_USER=admin
+      - KEYCLOAK_ADMIN_PASSWORD=${kcpwd}
+      - KEYCLOAK_MANAGEMENT_USER=keycloak
+      - KEYCLOAK_MANAGEMENT_PASSWORD=${kcmpwd}
+      - KEYCLOAK_DATABASE_NAME=keycloak
+      - KEYCLOAK_DATABASE_USER=postgres
+      - KEYCLOAK_DATABASE_PASSWORD=${kcdbpwd}
+    depends_on:
+      - postgresql
+    ports:
+      - "8080:8080"
+
+volumes:
+  pv_postgresql_data:
+    driver: local
+`
+}
+
+// async function addAppDB (fastify, appdbpwd, kcdbpwd) {
+//   const { shell } = fastify
+//   return new Promise((resolve, reject) => {
+//     const params = `"postgresql://postgres:${kcdbpwd}@127.0.0.1/keycloak"`
+//     const dockerPath = shell.which('docker')
+//     if (!dockerPath || !dockerPath.stdout) {
+//       reject(new Error('docker not in your path!'))
+//     }
+//     console.log('dockerPath=', dockerPath)
+//     shell.expect.spawn(dockerPath.stdout, ['exec', '-it', 'pv-postgres', 'psql', params])
+//       .expect('keycloak=#')
+//       .sendline('CREATE DATABASE app;')
+//       .expect('keycloak=#')
+//       .sendline(`CREATE USER app with encrypted password '${appdbpwd}';\n`)
+//       .expect('keycloak=#')
+//       .sendline('GRANT ALL PRIVILEGES ON DATABASE app TO postgres;')
+//       .expect('keycloak=#')
+//       .sendline('\\q')
+//       .run(err => {
+//         if (err) {
+//           reject(err)
+//         } else {
+//           resolve()
+//         }
+//       })
+//   })
+// }
+
+async function setUserpwd (fastify, container, appdbpwd, kcdbpwd) {
   const { log } = fastify
   return new Promise((resolve, reject) => {
+    const params = `"postgresql://postgres:${kcdbpwd}@127.0.0.1/keycloak"`
+    // log.debug('run psql params=%s', params)
     container.exec({
       Cmd: ['psql', '-U', 'postgres'],
+      Tty: true,
       AttachStdin: true,
       AttachStdout: true,
       AttachStderr: true
@@ -28,34 +100,56 @@ async function setUserpwd (fastify, container, userpwd) {
         reject(err)
       }
       // log.debug('get exec:%o', exec)
-      exec.start({ Tty: true, stdin: true }, function (err, stream) {
+      exec.start({ Tty: true, stdin: true }, async function (err, stream) {
         if (err) {
           reject(err)
         }
-        log.debug('pg get stream', stream)
+        // log.debug('pg get stream', stream)
         const cmds = [
-          `CREATE USER keycloak with encrypted password '${userpwd}';\n`,
-          'CREATE DATABASE keycloak;\n',
-          'GRANT ALL PRIVILEGES ON DATABASE keycloak TO keycloak;\n',
-          '\\q\n'
+          'CREATE DATABASE app;\n',
+          `CREATE USER app with encrypted password '${appdbpwd}';\n`,
+          'GRANT ALL PRIVILEGES ON DATABASE app TO postgres;\n',
+          '\\q\n',
+          '\n'
         ]
-        const cmd = cmds.shift()
-        stream.write(cmd)
+        // const cmd = cmds.shift()
+        // stream.write(cmd)
+        // await fastify.$.delay(1000)
+        // stream.write(`psql ${params}\r`)
+        // log.debug('command wite %s', kcdbpwd)
+        let inputPwd = false
         stream.on('data', (chunk) => {
           const data = Buffer.from(chunk).toString('utf-8')
           log.debug('pgsql:%s', data)
-          if (cmds.length > 0) {
-            const cmd = cmds.shift()
-            log.debug('pg cmd=%s', cmd)
-            stream.write(cmd)
-            // stream.write('\n')
+          if (!inputPwd) {
+            if (data && data.indexOf('Password for user') >= 0) {
+              stream.write(`${kcdbpwd}\n`)
+              inputPwd = true
+            }
           } else {
-            reject(new Error('no commands!'))
+            if (cmds.length > 0) {
+              const cmd = cmds.shift()
+              // log.debug('pg cmd=%s', cmd)
+              stream.write(cmd)
+              // stream.write('\n')
+            }
           }
+          // else {
+          //   reject(new Error('no commands!'))
+          // }
         })
         stream.on('error', (err) => reject(err))
         stream.on('end', () => {
           // log.debug('stream end???%o', arguments)
+          if (cmds.length) {
+            log.error(`无法创建app用户，请在终端手动执行如下指令:
+docker exec -it pv-postgres psql ${params}
+CREATE DATABASE app;
+CREATE USER app with encrypted password '${appdbpwd}';
+GRANT ALL PRIVILEGES ON DATABASE app TO postgres;
+\\q
+`)
+          }
           resolve()
         })
       })
@@ -64,99 +158,66 @@ async function setUserpwd (fastify, container, userpwd) {
 }
 
 async function deploy (fastify, cfg = {}) {
-  const { soa, _, $, log, config } = fastify
+  const { soa, _, $, log, config, shell } = fastify
   const cfgutil = config.util
   const docker = await soa.get('docker')
   if (!docker) {
     return false
   }
   const pgdir = cfgutil.path('config', 'active', 'postgres')
-  let container = await util.findContainer(_, docker, tagName)
-  if (!container) {
-    const images = await docker.listImages().catch(e => {
-      log.error('docker can not get image list: %s', e)
-    })
-    const imageInfo = _.find(images, (v) => { return v && v.RepoTags && v.RepoTags && v.RepoTags.indexOf(imageTag) >= 0 })
-    // log.debug('imageInfo=%o', imageInfo)
-    if (!imageInfo) {
-      await util.pullImg(docker, imageTag, log)
-    }
-
-    // log.debug('images=%o', images)
-    const volumeBase = path.join(pgdir, 'volumes')
-    // console.log('postgres cfg=', cfg)
-    const conncfg = cfg.connection || {}
-    log.debug('map postgres data to host dir="%s"', path.join(volumeBase, 'data'))
-    const PortBindings = { }
-    PortBindings[`${conncfg.port || 5432}/tcp`] = [
-      {
-        HostPort: '5432'
-      }
-    ]
-    let passwd = conncfg.password
-    if (!passwd) {
-      passwd = _.cryptoRandom({ length: 16 })
-      await fs.writeFile(path.join(pgdir, 'passwd'), passwd)
-    }
-    const Env = [
-      `POSTGRES_USER=${conncfg.user || 'postgres'}`,
-      `POSTGRES_PASSWORD=${passwd}`,
-      `POSTGRES_DB=${conncfg.database || 'app'}`
-    ]
-    log.debug('postgres Env=%o', Env)
-    container = await docker.createContainer({
-      Image: imageTag,
-      AttachStdin: false,
-      AttachStdout: false,
-      AttachStderr: true,
-      Tty: false,
-      name: tagName,
-      Labels: {
-        'com.prodvest.project': tagName
-      },
-      RestartPolicy: {
-        Name: 'always',
-        MaximumRetryCount: 0
-      },
-      Env,
-      HostConfig: {
-        PortBindings,
-        Binds: [
-          `${path.join(volumeBase, 'data')}:/var/lib/postgresql/data`
-        ]
-      }
-    }).catch(e => {
-      log.error('create postgres Container error:%s', e)
-      return null
-    })
+  const kcdir = cfgutil.path('config', 'active', 'keycloak')
+  // log.debug('images=%o', images)
+  // console.log('postgres cfg=', cfg)
+  const conncfg = cfg.connection || {}
+  let appdbpwd = conncfg.password
+  if (!appdbpwd) {
+    appdbpwd = _.cryptoRandom({ length: 16 })
+    await fs.writeFile(path.join(pgdir, 'app.passwd'), appdbpwd)
   }
+  const kcdbpwd = await fs.readFile(path.join(pgdir, 'kc.passwd'), 'utf8').catch(async e => {
+    const newpwd = _.cryptoRandom({ length: 16 })
+    await fs.writeFile(path.join(pgdir, 'kc.passwd'), newpwd)
+    log.debug('为pg产生kc用密码:%s', newpwd)
+    return newpwd
+  })
+  const kcpwd = await fs.readFile(path.join(kcdir, 'admin.passwd'), 'utf8').catch(async e => {
+    const newpwd = _.cryptoRandom({ length: 16 })
+    await fs.writeFile(path.join(kcdir, 'admin.passwd'), newpwd)
+    log.debug('为kc产生admin用密码:%s', newpwd)
+    return newpwd
+  })
+  const kcmpwd = await fs.readFile(path.join(kcdir, 'manage.passwd'), 'utf8').catch(async e => {
+    const newpwd = _.cryptoRandom({ length: 16 })
+    await fs.writeFile(path.join(kcdir, 'manage.passwd'), newpwd)
+    log.debug('为kc产生manage用密码:%s', newpwd)
+    return newpwd
+  })
+
+  await fs.writeFile(cfgutil.path('config', 'active', 'docker-compose.yml'), updcompose({
+    kcdbpwd,
+    kcpwd,
+    kcmpwd
+  }))
+
+  const pwd = shell.pwd()
+  await shell.cd(cfgutil.path('config', 'active'))
+  await shell.pexec('docker-compose up -d')
+  shell.cd(pwd)
+
+  await $.delay(1000)
+
+  // await addAppDB(fastify, appdbpwd, kcdbpwd)
+
+  const container = await $.retry(_.bindKey(util, 'findContainer'), { maxAttempts: 5, delayMs: 1000 })(_, docker, tagName).catch(e => {
+    log.error('get postgres container error:%s', e)
+  })
 
   if (!container) {
-    const msg = '无法获取或创建postgres的docker容器'
-    log.error(msg)
     return false
   }
 
-  const containerInfo = await container.inspect().catch(e => {
-    return null
-  })
-  // log.debug('container inspect info=%o', containerInfo)
-
-  if (!containerInfo || !containerInfo.State || !containerInfo.State.Running) {
-    // console.log('container.start=', container.start)
-    log.debug('start postgres container...')
-    await $.retry(_.bindKey(container, 'start'), { maxAttempts: 5, delayMs: 1000 })().catch(e => {
-      log.error('start postgres error:%s', e)
-    })
-    await $.delay(1000)
-    const userpwdfile = path.join(pgdir, 'user.passwd')
-    await fs.access(userpwdfile, fs.F_OK).catch(async e => {
-      const userpwd = _.cryptoRandom({ length: 16 })
-      await fs.writeFile(userpwdfile, userpwd)
-      await setUserpwd(fastify, container, userpwd)
-    })
-  }
-
+  await setUserpwd(fastify, container, appdbpwd, kcdbpwd)
+  log.debug('founded conatiner=%o', container)
   return true
 }
 

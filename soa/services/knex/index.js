@@ -10,7 +10,6 @@
 // File: index
 
 const fs = require('fs').promises
-const path = require('path')
 
 async function load (fastify, sdl = {}) {
   const { _, log, soa, config } = fastify
@@ -23,25 +22,19 @@ async function load (fastify, sdl = {}) {
   if (!conf.client) {
     conf.client = 'pg'
     deploypg = true
-    conf.connection = conf.connection || {}
-    if (_.isObject(conf.connection)) {
-      const basePath = cfgutil.path('config', 'active', 'postgres')
-      await fs.mkdir(path.join(basePath, 'volumes', 'data'), { recursive: true }).catch(e => e) // 忽略EEXIST错误。
-      conf.connection.host = conf.connection.host || '127.0.0.1'
-      conf.connection.port = conf.connection.port || 5432
-      conf.connection.user = conf.connection.user || 'postgres'
-      if (!conf.connection.password) {
-        const pwdfile = path.join(basePath, 'passwd')
-        const pwd = await fs.readFile(pwdfile).catch(async e => {
-          const newpwd = _.cryptoRandom({ length: 16 })
-          await fs.writeFile(pwdfile, newpwd)
-          log.debug('为pg产生默认密码:%s', newpwd)
-          return newpwd
-        })
-        conf.connection.password = _.isString(pwd) ? pwd : pwd.toString()
-      }
-      conf.connection.database = conf.connection.database || 'app'
+    conf.connection = {
+      host: '127.0.0.1',
+      port: 5432,
+      user: 'postgres',
+      database: 'app'
     }
+    const pwdfile = cfgutil.path('config', 'active', 'postgres', 'app.passwd')
+    conf.connection.password = await fs.readFile(pwdfile, 'utf8').catch(async e => {
+      const newpwd = _.cryptoRandom({ length: 16 })
+      await fs.writeFile(pwdfile, newpwd)
+      log.debug('为pg产生默认密码:%s', newpwd)
+      return newpwd
+    })
   }
 
   log.debug('knext conf=%o', conf)
@@ -77,7 +70,7 @@ async function load (fastify, sdl = {}) {
     }
     log.debug('knext heart=%o', heart)
   }
-  log.debug('knex loaded ok!')
+  // log.debug('knex loaded ok!')
   return { inst: client }
 }
 
