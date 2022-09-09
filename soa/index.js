@@ -48,10 +48,8 @@ function instance (fastify) {
         return null
       }
     }
-
-    soa.load = async (srvName, sdl = {}) => {
-      const srvEntry = load(fastify, srvName, sdl)
-      // fastify.log.debug('加载结果"%s"=%o', srvName, srvEntry)
+    // 未放入文档，只是内部使用，外部禁止使用.
+    soa.reg = async (srvName, srvEntry) => {
       if (srvEntry) {
         cache.put(srvName, srvEntry)
         if ($.isPromise(srvEntry)) {
@@ -59,6 +57,13 @@ function instance (fastify) {
           cache.put(srvName, srvEntry)
         }
       }
+    }
+
+    soa.load = async (srvName, sdl = {}) => {
+      const srvEntry = load(fastify, srvName, sdl)
+      // fastify.log.debug('加载结果"%s"=%o', srvName, srvEntry)
+      await soa.reg(srvName, srvEntry)
+      return srvEntry
     }
 
     soa.has = (srvName) => {

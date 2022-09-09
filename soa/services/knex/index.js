@@ -25,7 +25,7 @@ async function load (fastify, sdl = {}) {
     conf.connection = {
       host: '127.0.0.1',
       port: 5432,
-      user: 'postgres',
+      user: 'app',
       database: 'app'
     }
     const pwdfile = cfgutil.path('config', 'active', 'postgres', 'app.passwd')
@@ -37,7 +37,7 @@ async function load (fastify, sdl = {}) {
     })
   }
 
-  log.debug('knext conf=%o', conf)
+  // log.debug('knext conf=%o', conf)
   await fastify.shell.require(conf.client)
   const client = createKnex(conf)
   const kenxUtils = await soa.get('knex-utils')

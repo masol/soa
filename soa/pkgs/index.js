@@ -21,6 +21,10 @@ const internal = {
   undici: {
     pkg: 'undici',
     module: true
+  },
+  kcAdmin: {
+    pkg: '@keycloak/keycloak-admin-client',
+    module: true
   }
 }
 
