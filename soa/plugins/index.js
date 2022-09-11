@@ -12,6 +12,7 @@
 const { loadPkg } = require('../pkgs')
 const staticPlugin = require('./static')
 const sessionPlugin = require('./session')
+const socketioPlugin = require('./socketio')
 
 const internal = {
   cors: '@fastify/cors',
@@ -22,7 +23,8 @@ const internal = {
   static: staticPlugin.load,
   cookie: '@fastify/cookie',
   // 'https-redirect': 'fastify-https-redirect',
-  session: sessionPlugin.load
+  session: sessionPlugin.load,
+  socketio: socketioPlugin.load
 }
 
 async function loadPlugin (fastify, packageName, sdl = {}) {

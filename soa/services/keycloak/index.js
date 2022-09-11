@@ -57,6 +57,7 @@ async function load (fastify, sdl = {}) {
   const { soa, log, _, config } = fastify
   const cfgutil = config.util
   const keycloak = await fastify.shell.import('fastify-keycloak-adapter')
+  // const KeyCloak = await fastify.shell.require('keycloak-connect')
 
   const kcbase = cfgutil.path('config', 'active', 'keycloak')
   const secreteFile = path.join(kcbase, 'server.cert')
@@ -74,11 +75,24 @@ async function load (fastify, sdl = {}) {
   const KcAdmCls = kcAdmin.default ? kcAdmin.default : kcAdmin
   const srvCfg = _.isObject(sdl.conf) ? _.clone(sdl.conf) : {}
   const adpCfg = _.isObject(sdl.adapter) ? _.clone(sdl.adapter) : {}
-
+  // const adpCfg = _.isObject(sdl.adapter)
+  //   ? _.clone(sdl.adapter)
+  //   : {
+  //       realm: 'app',
+  //       'auth-server-url': 'http://127.0.0.1:8080/',
+  //       'ssl-required': 'external',
+  //       resource: 'fastify-server',
+  //       'verify-token-audience': true,
+  //       credentials: {
+  //         secret: await fs.readFile(secreteFile, 'utf8').catch(e => { return '' })
+  //       },
+  //       'confidential-port': 0,
+  //       'policy-enforcer': {}
+  //     }
   adpCfg.appOrigin = adpCfg.appOrigin || 'https://127.0.0.1:3000'
   adpCfg.keycloakSubdomain = adpCfg.keycloakSubdomain || '127.0.0.1:8080/realms/app'
   if (!adpCfg.clientId) {
-    adpCfg.clientId = await fs.readFile(idFile, 'utf8').catch(e => { return '' })
+    adpCfg.clientId = fastifyCid // await fs.readFile(idFile, 'utf8').catch(e => { return '' })
   }
   if (!clientSecret) {
     adpCfg.clientSecret = await fs.readFile(secreteFile, 'utf8').catch(e => { return '' })
@@ -198,7 +212,19 @@ async function load (fastify, sdl = {}) {
   // 确保session服务已加载。session会确保cookie依赖完成初始化。
   await soa.get('session')
   // log.debug('keycloak dep1!')
+  // for fastify-keycloak-adapter
   await fastify.register(keycloak, adpCfg)
+
+  // const kccfg = _.isObject(sdl.kc) ? _.clone(sdl.kc) : {}
+  // if (!kccfg.store) {
+  //   const session = await soa.get('session')
+  //   // console.log('session=', session.inst.storeInst)
+  //   kccfg.store = session.inst.storeInst
+  // }
+  // const keyCloak = new KeyCloak(kccfg, adpCfg)
+  // kcAdminClient.keyCloak = keyCloak
+  // fastify.use(keyCloak.middleware())
+  // await fastify.register(keycloak, adpCfg)
   // log.debug('keycloak ok!!')
   // if (!(_.isBoolean(sdl.proxy) && sdl.proxy === false)) {
   //   let proxyOpt = {}
