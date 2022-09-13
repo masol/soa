@@ -34,7 +34,7 @@ async function loadPkg (fastify, pkgName, isES6) {
     const module = await fastify.shell.import(pkgName)
     // fastify.log.debug('load package %s to %o', pkgName, module)
     if (module) {
-      return module.default ? module.default : module
+      return (module.__esModule && module.default) ? module.default : module
     }
   }
   return await fastify.shell.require(pkgName)

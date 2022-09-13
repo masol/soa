@@ -29,7 +29,7 @@ module.exports.load = async function (fastify, srvName, sdl = {}) {
     const env = await soa.get('env')
     if (env.share === 'redis' && !conf.store) {
       const connectRedis = await loadPkg(fastify, 'connect-redis', true)
-      const RedisStore = connectRedis(session)
+      const RedisStore = connectRedis.default(session)
       // console.log('RedisStore=', RedisStore)
       const redisClient = await soa.get('redis')
       // console.log('session store采用redis...%o', redisClient)

@@ -28,7 +28,7 @@ class Env {
       share: conf.share || 'redis',
       fs: conf.fs || 'local',
       static: conf.static || 'local',
-      sso: conf.sso || false,
+      sso: conf.sso || 'passport',
       vault: conf.vault || false
     }
     if (this.local) {

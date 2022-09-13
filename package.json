@@ -16,6 +16,7 @@
   "author": "lizhutang",
   "license": "MIT",
   "dependencies": {
+    "@fastify/passport": "^2.2.0",
     "@supercharge/goodies": "^1.11.1",
     "blend-promise-utils": "^1.29.0",
     "crypto-random-string": "^5.0.0",

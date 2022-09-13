@@ -11,8 +11,8 @@
 
 const { loadPkg } = require('../pkgs')
 const staticPlugin = require('./static')
-const sessionPlugin = require('./session')
-const socketioPlugin = require('./socketio')
+// const sessionPlugin = require('./session')
+// const socketioPlugin = require('./socketio')
 
 const internal = {
   cors: '@fastify/cors',
@@ -23,8 +23,9 @@ const internal = {
   static: staticPlugin.load,
   cookie: '@fastify/cookie',
   // 'https-redirect': 'fastify-https-redirect',
-  session: sessionPlugin.load,
-  socketio: socketioPlugin.load
+  session: true,
+  socketio: true,
+  passport: true
 }
 
 async function loadPlugin (fastify, packageName, sdl = {}) {
@@ -40,11 +41,21 @@ async function load (fastify, srvName, sdl = {}) {
   const handler = internal[srvName]
   // console.log(srvName, 'sdl in plugin/index:', sdl)
   if (_.isFunction(handler)) {
-    return { inst: await handler(fastify, srvName, sdl) }
+    return await handler(fastify, srvName, sdl)
   } else if (_.isString(handler)) {
     return { inst: await loadPlugin(fastify, handler, sdl) }
+  } else if (handler) {
+    try {
+      const Handler = require(`./${srvName}`)
+      // console.log('Handler=', Handler)
+      if (Handler && _.isFunction(Handler.load)) {
+        return await Handler.load(fastify, srvName, sdl)
+      }
+    } catch (e) {
+      console.log('load error:', e)
+    }
   }
-  log.warn('请求的默认插件%s不存在或无法加载。', srvName)
+  log.warn('请求的插件%s不存在或无法加载。', srvName)
   return { inst: null }
 }
 
