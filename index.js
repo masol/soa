@@ -40,7 +40,10 @@ async function decorate (fastify, opts) {
   extShelljs.ext(fastify, shelljs)
   fastify.decorate('shell', shelljs)
 
-  fastify.decorate('soa', SOA.instance(fastify, opts))
+  const soa = SOA.instance(fastify, opts)
+  fastify.decorate('soa', soa)
+
+  // await soa.get('formbody')
 }
 
 module.exports.decorate = decorate
