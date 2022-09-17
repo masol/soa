@@ -12,13 +12,11 @@
 module.exports.load = async function (fastify, srvName, sdl = {}) {
   const { soa, log, _ } = fastify
   const { loadPkg } = require('../../pkgs')
+  await soa.get('session')
   const passportModule = (await loadPkg(fastify, '@fastify/passport', true))
+  // const passport = new passportModule.Authenticator()
   const passport = passportModule.default
   passport.module = passportModule
-  await soa.get('session')
-  // console.log('passport=', passportModule.initialize())
-  fastify.register(passport.initialize())
-  fastify.register(passport.secureSession())
   const strategiesCFG = _.isObject(sdl.conf) ? _.clone(sdl.conf) : {}
   if (!strategiesCFG.local) { // 如果未指定，添加默认的local strategy.
     strategiesCFG.local = {}
@@ -36,12 +34,22 @@ module.exports.load = async function (fastify, srvName, sdl = {}) {
       }
     }
   }
-  passport.registerUserSerializer(async (user, request) => { return JSON.stringify(user) })
+  passport.registerUserSerializer(async (user, request) => {
+    console.log('registerUserSerializer: user=', user)
+    log.debug('enter serializer:%o', user)
+    return JSON.stringify(user)
+  })
 
   // ... and then a deserializer that will fetch that user from the database when a request with an id in the session arrives
   passport.registerUserDeserializer(async (id, request) => {
+    log.debug('enter deserializer=%s', id)
     return JSON.parse(id)
   })
+
+  // console.log('passport=', passportModule.initialize())
+  await fastify.register(passport.initialize())
+  await fastify.register(passport.secureSession())
+
   log.debug('passport loaded!')
   return { inst: passport }
 }

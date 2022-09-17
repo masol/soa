@@ -14,10 +14,10 @@ module.exports = async function (fastify, passport, conf) {
   const { shell } = fastify
   const LocalStrategy = await shell.import('passport-local')
   // console.log('LocalStrategy=', LocalStrategy)
-  passport.use(new LocalStrategy.Strategy(function verify (username, password, cb) {
+  passport.use('local', new LocalStrategy.Strategy(async function (username, password, done) {
     console.log('local login=', username, passport)
     const row = { username: 'test', role: ['a', 'b', 'c'] }
-    cb(null, row)
+    done(null, row)
     console.log('after cb!!')
   }))
   //

@@ -14,8 +14,6 @@ module.exports.load = async function (fastify, srvName, sdl = {}) {
   const { soa, log, _ } = fastify
   // const cfgutil = fastify.config.util
   // 确保cookie服务已加载。
-  // await soa.get('formbody')
-  // await soa.get('multer')
   await soa.get('cookie')
   const session = await loadPkg(fastify, '@fastify/session', false)
   const conf = _.isObject(sdl.conf) ? _.clone(sdl.conf) : {}

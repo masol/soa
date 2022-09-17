@@ -22,6 +22,9 @@ const internal = {
   'rate-limit': '@fastify/rate-limit',
   static: staticPlugin.load,
   cookie: '@fastify/cookie',
+  multipart: '@fastify/multipart',
+  bree: 'fastify-bree',
+  // 'https-redirect': 'fastify-https-redirect',
   formbody: async (fastify, srvName, sdl) => {
     const pkg = await loadPkg(fastify, '@fastify/formbody', false)
     const cfg = fastify._.isObject(sdl.conf) ? fastify._.clone(sdl.conf) : {}
@@ -32,8 +35,6 @@ const internal = {
     cfg.bodyLimit = cfg.bodyLimit || 10240
     await fastify.register(pkg, cfg)
   },
-  multipart: '@fastify/multipart',
-  // 'https-redirect': 'fastify-https-redirect',
   // multer: true,
   session: true,
   socketio: true,
