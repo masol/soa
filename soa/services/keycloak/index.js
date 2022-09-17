@@ -59,6 +59,11 @@ async function load (fastify, sdl = {}) {
   const keycloak = await fastify.shell.import('fastify-keycloak-adapter')
   // const KeyCloak = await fastify.shell.require('keycloak-connect')
 
+  // 确保数据库及keycloak服务启动。
+  await soa.get('knex')
+  // 确保session服务已加载。session会确保cookie依赖完成初始化。
+  await soa.get('session')
+
   const kcbase = cfgutil.path('config', 'active', 'keycloak')
   const secreteFile = path.join(kcbase, 'server.cert')
   const idFile = path.join(kcbase, 'server.id')
@@ -104,6 +109,7 @@ async function load (fastify, sdl = {}) {
     fastify.log('call to unauthorizedHandler')
     reply.status(401).send('Invalid request')
   }
+  adpCfg.excludedPatterns = adpCfg.excludedPatterns || ['/**/*.html']
 
   srvCfg.baseUrl = srvCfg.baseUrl || 'http://127.0.0.1:8080/'
   let initRealm = false
@@ -201,16 +207,12 @@ async function load (fastify, sdl = {}) {
 
   // const opts = await prepareCFG(fastify, sdl)
   // console.log('keycloak opts=', opts)
-  // 确保数据库及keycloak服务启动。
-  await soa.get('knex')
   // const kch = await health(fastify, opts)
   // if (!kch) {
   //   // keycloak健康检查。
   //   log.error('keycloak健康检查错误,可能是knex中pg数据库配置错误,无法恢复此错误!')
   //   return { inst: null }
   // }
-  // 确保session服务已加载。session会确保cookie依赖完成初始化。
-  await soa.get('session')
   // log.debug('keycloak dep1!')
   // for fastify-keycloak-adapter
   await fastify.register(keycloak, adpCfg)

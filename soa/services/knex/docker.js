@@ -14,7 +14,47 @@ const path = require('path')
 const util = require('../util')
 const tagName = 'pv-postgres'
 
-function updcompose ({ apppwd }) {
+// function updcompose ({ kcdbpwd, kcpwd, kcmpwd }) {
+//   return `version: '2'
+// services:
+//   postgresql:
+//     image: bitnami/postgresql:14.5.0
+//     container_name: pv-postgres
+//     labels:
+//       com.prodvest.project: "pv-postgres"
+//     environment:
+//       # ALLOW_EMPTY_PASSWORD is recommended only for development.
+//       - POSTGRESQL_USERNAME=postgres
+//       - POSTGRESQL_DATABASE=keycloak
+//       - POSTGRESQL_PASSWORD=${kcdbpwd}
+//     ports:
+//       - "5432:5432"
+//     volumes:
+//       - 'pv_postgresql_data:/bitnami/postgresql'
+//   keycloak:
+//     image: bitnami/keycloak:19.0.1
+//     container_name: pv-keycloak
+//     labels:
+//       com.prodvest.project: "pv-keycloak"
+//     environment:
+//       - KEYCLOAK_ADMIN_USER=admin
+//       - KEYCLOAK_ADMIN_PASSWORD=${kcpwd}
+//       - KEYCLOAK_MANAGEMENT_USER=keycloak
+//       - KEYCLOAK_MANAGEMENT_PASSWORD=${kcmpwd}
+//       - KEYCLOAK_DATABASE_NAME=keycloak
+//       - KEYCLOAK_DATABASE_USER=postgres
+//       - KEYCLOAK_DATABASE_PASSWORD=${kcdbpwd}
+//     depends_on:
+//       - postgresql
+//     ports:
+//       - "8080:8080"
+// volumes:
+//   pv_postgresql_data:
+//     driver: local
+// `
+// }
+
+function updcompose ({ appdbpwd }) {
   return `version: '2'
 services:
   postgresql:
@@ -24,47 +64,18 @@ services:
       com.prodvest.project: "pv-postgres"
     environment:
       # ALLOW_EMPTY_PASSWORD is recommended only for development.
-      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_USERNAME=app
       - POSTGRESQL_DATABASE=app
-      - POSTGRESQL_PASSWORD=${apppwd}
+      - POSTGRESQL_PASSWORD=${appdbpwd}
     ports:
       - "5432:5432"
     volumes:
       - 'pv_postgresql_data:/bitnami/postgresql'
-
 volumes:
   pv_postgresql_data:
     driver: local
 `
 }
-
-// async function addAppDB (fastify, appdbpwd, kcdbpwd) {
-//   const { shell } = fastify
-//   return new Promise((resolve, reject) => {
-//     const params = `"postgresql://postgres:${kcdbpwd}@127.0.0.1/keycloak"`
-//     const dockerPath = shell.which('docker')
-//     if (!dockerPath || !dockerPath.stdout) {
-//       reject(new Error('docker not in your path!'))
-//     }
-//     console.log('dockerPath=', dockerPath)
-//     shell.expect.spawn(dockerPath.stdout, ['exec', '-it', 'pv-postgres', 'psql', params])
-//       .expect('keycloak=#')
-//       .sendline('CREATE DATABASE app;')
-//       .expect('keycloak=#')
-//       .sendline(`CREATE USER app with encrypted password '${appdbpwd}';\n`)
-//       .expect('keycloak=#')
-//       .sendline('GRANT ALL PRIVILEGES ON DATABASE app TO postgres;')
-//       .expect('keycloak=#')
-//       .sendline('\\q')
-//       .run(err => {
-//         if (err) {
-//           reject(err)
-//         } else {
-//           resolve()
-//         }
-//       })
-//   })
-// }
 
 // async function setUserpwd (fastify, container, appdbpwd, kcdbpwd) {
 //   const { log } = fastify
@@ -90,7 +101,7 @@ volumes:
 //         const cmds = [
 //           'CREATE DATABASE app;\n',
 //           `CREATE USER app with encrypted password '${appdbpwd}';\n`,
-//           'GRANT ALL PRIVILEGES ON DATABASE app TO postgres;\n',
+//           'GRANT ALL PRIVILEGES ON DATABASE app TO app;\n',
 //           '\\q\n',
 //           '\n'
 //         ]
@@ -175,8 +186,14 @@ async function deploy (fastify, cfg = {}) {
   //   return newpwd
   // })
 
+  // await fs.writeFile(cfgutil.path('config', 'active', 'docker-compose.yml'), updcompose({
+  //   kcdbpwd,
+  //   kcpwd,
+  //   kcmpwd
+  // }))
+
   await fs.writeFile(cfgutil.path('config', 'active', 'docker-compose.yml'), updcompose({
-    apppwd: appdbpwd
+    appdbpwd
   }))
 
   const pwd = shell.pwd()
@@ -185,8 +202,6 @@ async function deploy (fastify, cfg = {}) {
   shell.cd(pwd)
 
   await $.delay(1000)
-
-  // await addAppDB(fastify, appdbpwd, kcdbpwd)
 
   const container = await $.retry(_.bindKey(util, 'findContainer'), { maxAttempts: 5, delayMs: 1000 })(_, docker, tagName).catch(e => {
     log.error('get postgres container error:%s', e)

@@ -20,6 +20,7 @@ async function loadef (fastify, srvName, sdl = {}) {
       return await part.load(fastify, srvName, sdl)
     }
   }
+  console.trace()
   fastify.log.warn('请求未定义loader的自定义服务%s。', srvName)
 }
 
