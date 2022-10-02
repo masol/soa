@@ -16,18 +16,21 @@
   "author": "lizhutang",
   "license": "MIT",
   "dependencies": {
+    "@fastify/forwarded": "^2.1.0",
     "@fastify/passport": "^2.2.0",
     "@supercharge/goodies": "^1.11.1",
     "blend-promise-utils": "^1.29.0",
     "crypto-random-string": "^5.0.0",
     "dockerode": "^3.3.4",
+    "glob": "^8.0.3",
     "http-errors-enhanced": "^1.0.9",
     "lodash": "^4.17.21",
     "memory-cache": "^0.2.0",
-    "nexpect": "^0.6.0",
     "qs": "^6.11.0",
     "shelljs": "^0.8.5",
-    "sqlite3": "^5.0.11"
+    "sqlite3": "^5.0.11",
+    "underscore.string": "^3.3.6",
+    "validator": "^13.7.0"
   },
   "devDependencies": {
     "@types/node": "^18.7.13",

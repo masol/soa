@@ -25,8 +25,8 @@ module.exports.load = async function (fastify, sdl = {}) {
   if (!fastify._.isArray(subPath)) {
     subPath = []
   }
-  if (cfgutil.isLocal()) { // 无条件启用plugin.并修正root目录。
-    conf.root = cfgutil.path('src/root')
+  if (cfgutil.isDev()) { // 无条件启用plugin.并修正root目录。
+    conf.root = cfgutil.path('src', 'helper', 'root')
     // subPath.push({ root: path.join(cfgutil.path(), '..', '..', 'root'), prefix: '/admin/' })
   }
   if (conf.root || subPath.length > 0) {

@@ -22,7 +22,6 @@ const getCAPath = (cfgutil) => {
 async function buildClient (fastify, Client, sdl = {}) {
   const cfgutil = fastify.config.util
   const _ = fastify._
-  // const bLocal = cfgutil.isLocal()
   const baseOpt = {}
   baseOpt.node = 'https://localhost:9200'
   baseOpt.auth = {

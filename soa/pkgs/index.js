@@ -9,6 +9,18 @@
 // Created On : 6 Sep 2022 By 李竺唐 of SanPolo.Co.LTD
 // File: index
 
+async function loadPkg (fastify, pkgName, isES6) {
+  if (isES6) {
+    // fastify.log.debug('load package %s...', pkgName)
+    const module = await fastify.shell.import(pkgName)
+    // fastify.log.debug('load package %s to %o', pkgName, module)
+    if (module) {
+      return (module.__esModule && module.default) ? module.default : module
+    }
+  }
+  return await fastify.shell.require(pkgName)
+}
+
 const internal = {
   'connect-redis': {
     pkg: 'connect-redis',
@@ -25,19 +37,15 @@ const internal = {
   kcAdmin: {
     pkg: '@keycloak/keycloak-admin-client',
     module: true
+  },
+  objection: async function (fastify, srvName, sdl) {
+    const { soa } = fastify
+    const knex = await soa.get('knex')
+    const module = await loadPkg(fastify, 'objection', true)
+    module.Model.knex(knex)
+    module.Model.store = {}
+    return module
   }
-}
-
-async function loadPkg (fastify, pkgName, isES6) {
-  if (isES6) {
-    // fastify.log.debug('load package %s...', pkgName)
-    const module = await fastify.shell.import(pkgName)
-    // fastify.log.debug('load package %s to %o', pkgName, module)
-    if (module) {
-      return (module.__esModule && module.default) ? module.default : module
-    }
-  }
-  return await fastify.shell.require(pkgName)
 }
 
 async function load (fastify, srvName, sdl = {}) {

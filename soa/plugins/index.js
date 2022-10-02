@@ -24,6 +24,7 @@ const internal = {
   cookie: '@fastify/cookie',
   multipart: '@fastify/multipart',
   bree: 'fastify-bree',
+  auth: 'pv-auth',
   // 'https-redirect': 'fastify-https-redirect',
   formbody: async (fastify, srvName, sdl) => {
     const pkg = await loadPkg(fastify, '@fastify/formbody', false)

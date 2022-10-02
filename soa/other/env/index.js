@@ -20,7 +20,10 @@ class Env {
 
   constructor (fastify, sdl = {}) {
     const conf = sdl.conf || {}
-    this.local = !!conf.local
+    this.dev = !!conf.dev
+    this.cfg = {
+      locale: conf.locale || 'zh-CN'
+    }
     this.srvcfg = {
       deploy: conf.deploy || 'docker',
       index: conf.index || 'elastic',
@@ -31,7 +34,7 @@ class Env {
       sso: conf.sso || 'passport',
       vault: conf.vault || false
     }
-    if (this.local) {
+    if (this.dev) {
       this.srvcfg.deploy = 'docker'
     }
     this.fastify = fastify
@@ -44,8 +47,12 @@ class Env {
     return srvs
   }
 
-  get bLocal () {
-    return this.srvcfg.local
+  get locale () {
+    return this.cfg.locale
+  }
+
+  get bDev () {
+    return this.srvcfg.dev
   }
 
   get deploy () {

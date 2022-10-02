@@ -11,7 +11,6 @@
 
 async function buildClient (fastify, createClient, sdl = {}) {
   const { soa, _, log } = fastify
-  // const bLocal = cfgutil.isLocal()
   const baseOpt = {}
   const conf = sdl.conf || {}
   const opt = _.assign(baseOpt, conf)

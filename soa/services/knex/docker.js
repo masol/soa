@@ -157,6 +157,21 @@ async function deploy (fastify, cfg = {}) {
   if (!docker) {
     return false
   }
+
+  let container = await $.retry(_.bindKey(util, 'findContainer'), { maxAttempts: 5, delayMs: 1000 })(_, docker, tagName).catch(e => {
+  })
+
+  if (container) {
+    const startResult = await $.retry(_.bindKey(container, 'start'), { maxAttempts: 5, delayMs: 1000 })().catch(e => {
+      log.error('start postgres container error:%s', e)
+      return false
+    })
+    if (startResult) {
+      await $.delay(1000)
+      return true
+    }
+  }
+
   const pgdir = cfgutil.path('config', 'active', 'postgres')
   // const kcdir = cfgutil.path('config', 'active', 'keycloak')
   // log.debug('images=%o', images)
@@ -203,7 +218,7 @@ async function deploy (fastify, cfg = {}) {
 
   await $.delay(1000)
 
-  const container = await $.retry(_.bindKey(util, 'findContainer'), { maxAttempts: 5, delayMs: 1000 })(_, docker, tagName).catch(e => {
+  container = await $.retry(_.bindKey(util, 'findContainer'), { maxAttempts: 5, delayMs: 1000 })(_, docker, tagName).catch(e => {
     log.error('get postgres container error:%s', e)
   })
 

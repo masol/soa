@@ -10,39 +10,40 @@
 // File: passport
 
 module.exports.load = async function (fastify, srvName, sdl = {}) {
-  const { soa, log, _ } = fastify
+  const { soa } = fastify
   const { loadPkg } = require('../../pkgs')
   await soa.get('session')
   const passportModule = (await loadPkg(fastify, '@fastify/passport', true))
   // const passport = new passportModule.Authenticator()
   const passport = passportModule.default
   passport.module = passportModule
-  const strategiesCFG = _.isObject(sdl.conf) ? _.clone(sdl.conf) : {}
-  if (!strategiesCFG.local) { // 如果未指定，添加默认的local strategy.
-    strategiesCFG.local = {}
-  }
-  const strategies = _.keys(strategiesCFG)
-  for (let i = 0; i < strategies.length; i++) {
-    const stratName = strategies[i]
-    const stratCfg = strategiesCFG[stratName]
-    if (!stratName.disabled) {
-      try {
-        const load = require(`./${stratName}`)
-        await load(fastify, passport, stratCfg)
-      } catch (e) {
-        log.error(`加载认证策略${stratName}时发生错误:%s`, e)
-      }
-    }
-  }
+  // 策略放在auth模块中实现。
+  // const strategiesCFG = _.isObject(sdl.conf) ? _.clone(sdl.conf) : {}
+  // if (!strategiesCFG.local) { // 如果未指定，添加默认的local strategy.
+  //   strategiesCFG.local = {}
+  // }
+  // const strategies = _.keys(strategiesCFG)
+  // for (let i = 0; i < strategies.length; i++) {
+  //   const stratName = strategies[i]
+  //   const stratCfg = strategiesCFG[stratName]
+  //   if (!stratName.disabled) {
+  //     try {
+  //       const load = require(`./${stratName}`)
+  //       await load(fastify, passport, stratCfg)
+  //     } catch (e) {
+  //       log.error(`加载认证策略${stratName}时发生错误:%s`, e)
+  //     }
+  //   }
+  // }
   passport.registerUserSerializer(async (user, request) => {
-    console.log('registerUserSerializer: user=', user)
-    log.debug('enter serializer:%o', user)
+    // console.log('registerUserSerializer: user=', user)
+    // log.debug('enter serializer:%o', user)
     return JSON.stringify(user)
   })
 
   // ... and then a deserializer that will fetch that user from the database when a request with an id in the session arrives
   passport.registerUserDeserializer(async (id, request) => {
-    log.debug('enter deserializer=%s', id)
+    // log.debug('enter deserializer=%s', id)
     return JSON.parse(id)
   })
 
@@ -50,6 +51,6 @@ module.exports.load = async function (fastify, srvName, sdl = {}) {
   await fastify.register(passport.initialize())
   await fastify.register(passport.secureSession())
 
-  log.debug('passport loaded!')
+  // log.debug('passport loaded!')
   return { inst: passport }
 }
