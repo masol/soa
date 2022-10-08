@@ -1,5 +1,5 @@
 {
-  "name": "pv-soa",
+  "name": "@masol/soa",
   "version": "0.0.1",
   "description": "prodvest默认soa支持.",
   "main": "index.js",
@@ -17,7 +17,6 @@
   "license": "MIT",
   "dependencies": {
     "@fastify/forwarded": "^2.1.0",
-    "@fastify/passport": "^2.2.0",
     "@supercharge/goodies": "^1.11.1",
     "blend-promise-utils": "^1.29.0",
     "crypto-random-string": "^5.0.0",
@@ -28,7 +27,6 @@
     "memory-cache": "^0.2.0",
     "qs": "^6.11.0",
     "shelljs": "^0.8.5",
-    "sqlite3": "^5.0.11",
     "underscore.string": "^3.3.6",
     "validator": "^13.7.0"
   },

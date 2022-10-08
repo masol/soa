@@ -21,19 +21,20 @@ const extUtil = require('./lib/util')
 const _ = require('lodash')
 const bootstrap = require('./lib/boot')
 
-async function decorate (fastify, opts) {
+/**
+ * 为了方便pipeline的工具使用，将fastify decorate的工具类抽取出来。
+ * @param {Object} config 全局config对象。为其扩展便捷函数。
+ * @returns
+ */
+async function getUtil (config) {
   const cryptoRandom = await import('crypto-random-string')
   _.cryptoRandom = cryptoRandom.default
   _.glob = require('glob')
-  // console.log('_.cryptoRandom=', _.cryptoRandom)
-  // console.log('_.cryptoRandom()=', _.cryptoRandom({ length: 64 }))
-  fastify.decorate('_', _)
-
   const s = require('underscore.string')
   s.v = require('validator')
-  fastify.decorate('s', s)
-
-  extConfig.ext(fastify, opts)
+  if (_.isObject(config)) {
+    extConfig.ext(config)
+  }
 
   const $ = _.extend({}, promiseUtils, goodies)
   $.glob = async function (pattern, options) {
@@ -47,9 +48,26 @@ async function decorate (fastify, opts) {
       })
     })
   }
+
+  return {
+    _,
+    s,
+    $,
+    shelljs
+  }
+}
+
+async function decorate (fastify, opts) {
+  // console.log('_.cryptoRandom=', _.cryptoRandom)
+  // console.log('_.cryptoRandom()=', _.cryptoRandom({ length: 64 }))
+  const util = await getUtil(fastify.config)
+  fastify.decorate('_', util._)
+
+  fastify.decorate('s', util.s)
+
   // 为$扩展lift系列函数。
   // extProm.ext(fastify, $)
-  fastify.decorate('$', $)
+  fastify.decorate('$', util.$)
 
   const error = await import('http-errors-enhanced')
   fastify.decorate('error', error)
@@ -73,3 +91,4 @@ function ajvPlugin (ajv, opts) {
 
 module.exports.decorate = decorate
 module.exports.ajvPlugin = ajvPlugin
+module.exports.getUtil = getUtil
