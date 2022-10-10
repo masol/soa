@@ -20,7 +20,6 @@
     "@supercharge/goodies": "^1.11.1",
     "blend-promise-utils": "^1.29.0",
     "crypto-random-string": "^5.0.0",
-    "dockerode": "^3.3.4",
     "glob": "^8.0.3",
     "http-errors-enhanced": "^1.0.9",
     "lodash": "^4.17.21",

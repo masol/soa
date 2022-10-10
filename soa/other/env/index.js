@@ -25,7 +25,7 @@ class Env {
       locale: conf.locale || 'zh-CN'
     }
     this.srvcfg = {
-      deploy: conf.deploy || 'docker',
+      deploy: conf.deploy || '', // 不再支持热部署，使用pipeline来部署。
       index: conf.index || 'elastic',
       db: conf.db || 'knex',
       share: conf.share || 'redis',

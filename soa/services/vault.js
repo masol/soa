@@ -12,7 +12,7 @@
 const fs = require('fs').promises
 
 async function load (fastify, sdl = {}) {
-  const { soa, _, $ } = fastify
+  const { _ } = fastify
   const cfgutil = fastify.config.util
   const tokenPath = cfgutil.path('config', 'active', 'vault', 'root.token')
 
@@ -29,21 +29,10 @@ async function load (fastify, sdl = {}) {
   const Vault = await fastify.shell.require('node-vault')
   const vault = await Vault(conf)
   const health = await vault.health().catch(async (err) => {
-    const env = await soa.get('env')
-    fastify.log.warn('vault健康检查错误,开始%s热部署。错误:%s', env.deploy, err)
-    const deploy = require(`./${env.deploy}`)
-    const bSuc = await deploy.deploy(fastify, sdl)
-    if (!bSuc) {
-      return null
-    }
-    return await $.retry(_.bindKey(vault, 'health'), { maxAttempts: 5, delayMs: 1000 })().catch(e => {
-      fastify.log.error('vault health错误:%s', e)
-      return null
-    })
+    fastify.log.error('vault健康检查错误。后续vault调用无效。错误:%s', err)
   })
 
   if (!health) {
-    fastify.log.error('docker无法部署vault服务。后续vault调用无效。')
     return { inst: null }
   }
 

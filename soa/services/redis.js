@@ -10,7 +10,7 @@
 // File: index
 
 async function buildClient (fastify, createClient, sdl = {}) {
-  const { soa, _, log } = fastify
+  const { _, log } = fastify
   const baseOpt = {}
   const conf = sdl.conf || {}
   const opt = _.assign(baseOpt, conf)
@@ -18,23 +18,8 @@ async function buildClient (fastify, createClient, sdl = {}) {
 
   // fastify.log.debug('new elastic instance with opt=%o', opt)
   const client = createClient(opt)
-  let deploying = false
   const errorHandler = async (err) => {
-    if (!deploying) { // 未执行部署，尝试部署。
-      deploying = true
-      const env = await soa.get('env')
-      fastify.log.warn('redis无法连接到服务器,开始%s热部署。错误:%s', env.deploy, err)
-      try {
-        const deploy = require(`./${env.deploy}`)
-        const bSuc = await deploy.deploy(fastify, sdl)
-        if (!bSuc) { // 关闭client对error的监听，以禁用断线重连，使得connect函数可以退出继续。
-          client.off('error', errorHandler)
-        }
-      } catch (e) {
-        fastify.log.warn('redis热部署期间发生错误:%s', e)
-      }
-      deploying = false
-    }
+    fastify.log.error('redis无法连接到服务器,错误:%s', err)
   }
   client.on('error', errorHandler)
 
@@ -57,7 +42,7 @@ async function buildClient (fastify, createClient, sdl = {}) {
 }
 
 async function load (fastify, sdl = {}) {
-  const { _, log, soa } = fastify
+  const { _, log } = fastify
   const pkg = sdl.package || 'ioredis'
   let client
   if (pkg === 'redis') {
@@ -75,17 +60,7 @@ async function load (fastify, sdl = {}) {
     }
     client = await new Redis(sdl.conf)
     client.on('error', async function (err) {
-      const env = await soa.get('env')
-      fastify.log.warn('redis无法连接到服务器,开始%s热部署。错误:%s', env.deploy, err)
-      try {
-        const deploy = require(`./${env.deploy}`)
-        const bSuc = await deploy.deploy(fastify, sdl)
-        if (!bSuc) { // 关闭client对error的监听，以禁用断线重连，使得connect函数可以退出继续。
-          fastify.log.warn('redis，无法成功热部署期。')
-        }
-      } catch (e) {
-        fastify.log.warn('redis热部署期间发生错误:%s', e)
-      }
+      fastify.log.warn('redis无法连接到服务器,错误:%s', err)
     })
     await client.ping().catch(err => {
       console.log('ioredis健康检查错误:', err)

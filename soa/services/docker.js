@@ -9,9 +9,9 @@
 // Created On : 5 Sep 2022 By 李竺唐 of SanPolo.Co.LTD
 // File: docker
 
-module.exports.load = function (fastify, sdl = {}) {
+module.exports.load = async function (fastify, sdl = {}) {
   const { _ } = fastify
-  const Dockerode = require('dockerode')
+  const Dockerode = await fastify.shell.require('dockerode')
   const opt = sdl.conf || {}
   let dockerInst
   if (_.isEmpty(opt)) {
