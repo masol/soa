@@ -25,7 +25,6 @@ class Env {
       locale: conf.locale || 'zh-CN'
     }
     this.srvcfg = {
-      deploy: conf.deploy || '', // 不再支持热部署，使用pipeline来部署。
       index: conf.index || 'elastic',
       db: conf.db || 'knex',
       share: conf.share || 'redis',
@@ -33,9 +32,6 @@ class Env {
       static: conf.static || 'local',
       sso: conf.sso || 'passport',
       vault: conf.vault || false
-    }
-    if (this.dev) {
-      this.srvcfg.deploy = 'docker'
     }
     this.fastify = fastify
   }
@@ -53,10 +49,6 @@ class Env {
 
   get bDev () {
     return this.srvcfg.dev
-  }
-
-  get deploy () {
-    return this.srvcfg.deploy
   }
 
   get index () {
