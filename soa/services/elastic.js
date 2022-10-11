@@ -9,11 +9,8 @@
 // Created On : 5 Sep 2022 By 李竺唐 of SanPolo.Co.LTD
 // File: index
 
-const fs = require('fs').promises
-
 async function buildClient (fastify, Client, sdl = {}) {
-  const cfgutil = fastify.config.util
-  const { _, s } = fastify
+  const { _, s, soa } = fastify
   const baseOpt = {}
   baseOpt.node = 'https://localhost:9200'
   baseOpt.auth = {
@@ -21,17 +18,14 @@ async function buildClient (fastify, Client, sdl = {}) {
   }
   baseOpt.tls = { }
   const conf = sdl.conf || {}
+  const vault = await soa.get('vault')
   if (!conf.caFingerprint) {
-    const ca = await fs.readFile(cfgutil.path('config', 'active', 'elastic', 'http_ca.crt')).catch(e => {
-      return null
-    })
+    const ca = await vault.read('elastic/http_ca.crt')
     if (ca) {
       baseOpt.tls.ca = ca
     }
   }
-  const passwd = s.trim((await fs.readFile(cfgutil.path('config', 'active', 'elastic', 'passwd'), 'utf8').catch(e => {
-    return ''
-  })), [' ', '\n', '\r'])
+  const passwd = s.trim((await vault.read('elastic/passwd')), [' ', '\n', '\r'])
   // console.log('passwd=', passwd)
   if (passwd) {
     baseOpt.auth.password = passwd

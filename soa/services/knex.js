@@ -9,14 +9,12 @@
 // Created On : 6 Sep 2022 By 李竺唐 of SanPolo.Co.LTD
 // File: index
 
-const fs = require('fs').promises
-
 async function load (fastify, sdl = {}) {
-  const { _, log, soa, config } = fastify
-  const cfgutil = config.util
+  const { _, log, soa } = fastify
   const createKnex = await fastify.shell.require('knex')
 
   const conf = _.isObject(sdl.conf) ? _.clone(sdl.conf) : {}
+  const vault = await soa.get('vault')
 
   if (!conf.client) {
     conf.client = 'pg'
@@ -26,9 +24,8 @@ async function load (fastify, sdl = {}) {
       user: 'app',
       database: 'app'
     }
-    const pwdfile = cfgutil.path('config', 'active', 'postgres', 'app.passwd')
     // 不产生新密码，如果密码不存在，直接抛出异常。
-    conf.connection.password = await fs.readFile(pwdfile, 'utf8')
+    conf.connection.password = await vault.read('postgres/app.passwd', { throw: true })
   }
 
   // log.debug('knext conf=%o', conf)
