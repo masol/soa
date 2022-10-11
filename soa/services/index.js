@@ -15,7 +15,8 @@ const internal = {
   redis: true,
   vault: true,
   knex: true,
-  keycloak: true
+  keycloak: true,
+  oss: true
 }
 
 async function load (fastify, srvName, sdl = {}) {

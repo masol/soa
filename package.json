@@ -14,7 +14,7 @@
     "soa"
   ],
   "author": "lizhutang",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "dependencies": {
     "@fastify/forwarded": "^2.1.0",
     "@supercharge/goodies": "^1.11.1",

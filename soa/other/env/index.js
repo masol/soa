@@ -31,7 +31,11 @@ class Env {
       fs: conf.fs || 'local',
       static: conf.static || 'local',
       sso: conf.sso || 'passport',
-      vault: conf.vault || false
+      oss: conf.oss || 'local',
+      vault: conf.vault || 'vault'
+    }
+    if (this.dev) {
+      this.srvcfg.deploy = 'docker'
     }
     this.fastify = fastify
   }
@@ -48,7 +52,7 @@ class Env {
   }
 
   get bDev () {
-    return this.srvcfg.dev
+    return this.dev
   }
 
   get index () {
