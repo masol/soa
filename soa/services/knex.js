@@ -16,17 +16,16 @@ async function load (fastify, sdl = {}) {
   const conf = _.isObject(sdl.conf) ? _.clone(sdl.conf) : {}
   const vault = await soa.get('vault')
 
-  if (!conf.client) {
-    conf.client = 'pg'
-    conf.connection = {
-      host: '127.0.0.1',
-      port: 5432,
-      user: 'app',
-      database: 'app'
-    }
-    // 不产生新密码，如果密码不存在，直接抛出异常。
-    conf.connection.password = await vault.read('postgres/app.passwd', { throw: true })
+  conf.client = conf.client || 'pg'
+  if (typeof conf.client !== 'string') {
+    throw new Error('knex配置文件错误，client必须是一个字符串。')
   }
+  conf.connection = conf.connection || { host: '127.0.0.1' }
+  conf.connection.port = conf.connection.port || 5432
+  conf.connection.user = conf.connection.user || 'app'
+  conf.connection.database = conf.connection.database || 'app'
+  // 不产生新密码，如果密码不存在，直接抛出异常。
+  conf.connection.password = conf.connection.password || await vault.read('postgres/app.passwd', { throw: true })
 
   // log.debug('knext conf=%o', conf)
   await fastify.shell.require(conf.client)

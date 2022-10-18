@@ -31,7 +31,7 @@ class Env {
       fs: conf.fs || 'local',
       static: conf.static || 'local',
       sso: conf.sso || 'passport',
-      oss: conf.oss || 'local',
+      oss: conf.oss || 'oss',
       vault: conf.vault || 'vault'
     }
     if (this.dev) {
