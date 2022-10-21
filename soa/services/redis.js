@@ -42,8 +42,14 @@ async function buildClient (fastify, createClient, sdl = {}) {
 }
 
 async function load (fastify, sdl = {}) {
-  const { _, log } = fastify
+  const { _, log, soa } = fastify
   const pkg = sdl.package || 'ioredis'
+  const vault = await soa.get('vault')
+  const passwd = await vault.read('redis/password')
+  if (passwd) { // 如果有密码，加入并覆盖配置中的密码项。
+    sdl.conf = sdl.conf || {}
+    sdl.conf.password = passwd
+  }
   let client
   if (pkg === 'redis') {
     const redis = await fastify.shell.import('redis')
