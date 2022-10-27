@@ -46,9 +46,9 @@ async function load (fastify, sdl = {}) {
   const pkg = sdl.package || 'ioredis'
   const vault = await soa.get('vault')
   const passwd = await vault.read('redis/password')
+  const redisConf = _.isObject(sdl.conf) ? _.cloneDeep(sdl.conf) : {}
   if (passwd) { // 如果有密码，加入并覆盖配置中的密码项。
-    sdl.conf = sdl.conf || {}
-    sdl.conf.password = passwd
+    redisConf.password = passwd
   }
   let client
   if (pkg === 'redis') {
@@ -64,7 +64,7 @@ async function load (fastify, sdl = {}) {
     if (!Redis) {
       return { inst: null }
     }
-    client = await new Redis(sdl.conf)
+    client = await new Redis(redisConf)
     client.on('error', async function (err) {
       fastify.log.warn('redis无法连接到服务器,错误:%s', err)
     })

@@ -16,7 +16,7 @@ module.exports.load = async function (fastify, srvName, sdl = {}) {
   const cfgutil = config.util
   const multer = await loadPkg(fastify, 'fastify-multer', false)
   fastify.register(multer.contentParser)
-  const cfg = _.isObject(sdl.conf) ? _.clone(sdl.conf) : {}
+  const cfg = _.isObject(sdl.conf) ? _.cloneDeep(sdl.conf) : {}
   cfg.dest = cfg.dest || cfgutil.path('config', 'active', 'uploads')
   const upload = multer(cfg)
   upload.module = multer

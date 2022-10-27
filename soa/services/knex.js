@@ -13,7 +13,7 @@ async function load (fastify, sdl = {}) {
   const { _, log, soa } = fastify
   const createKnex = await fastify.shell.require('knex')
 
-  const conf = _.isObject(sdl.conf) ? _.clone(sdl.conf) : {}
+  const conf = _.isObject(sdl.conf) ? _.cloneDeep(sdl.conf) : {}
   const vault = await soa.get('vault')
 
   conf.client = conf.client || 'pg'

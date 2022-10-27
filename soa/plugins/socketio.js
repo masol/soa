@@ -12,7 +12,7 @@ module.exports.load = async function (fastify, srvName, sdl = {}) {
   const { soa, log, _ } = fastify
   const { loadPkg } = require('../pkgs')
   const fastifyIO = await loadPkg(fastify, 'fastify-socket.io', false)
-  const ioCfg = _.isObject(sdl.conf) ? _.clone(sdl.conf) : {}
+  const ioCfg = _.isObject(sdl.conf) ? _.cloneDeep(sdl.conf) : {}
   if (!ioCfg.adapter) {
   // @fixme: support adapter config.
   // const adpCfg = _.isObject(sdl.adapter) ? _.clone(sdl.adapter) : {}

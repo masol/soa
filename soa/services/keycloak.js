@@ -78,8 +78,8 @@ async function load (fastify, sdl = {}) {
   })
   // log.debug('clientSecrete=%s', clientSecret)
   const KcAdmCls = kcAdmin.default ? kcAdmin.default : kcAdmin
-  const srvCfg = _.isObject(sdl.conf) ? _.clone(sdl.conf) : {}
-  const adpCfg = _.isObject(sdl.adapter) ? _.clone(sdl.adapter) : {}
+  const srvCfg = _.isObject(sdl.conf) ? _.cloneDeep(sdl.conf) : {}
+  const adpCfg = _.isObject(sdl.adapter) ? _.cloneDeep(sdl.adapter) : {}
   // const adpCfg = _.isObject(sdl.adapter)
   //   ? _.clone(sdl.adapter)
   //   : {
@@ -125,7 +125,7 @@ async function load (fastify, sdl = {}) {
   const kcAdminClient = new KcAdmCls(srvCfg)
   // console.log('KcAdmin=', kcAdminClient)
 
-  const connCfg = _.isObject(sdl.conn) ? _.clone(sdl.conn) : {}
+  const connCfg = _.isObject(sdl.conn) ? _.cloneDeep(sdl.conn) : {}
   connCfg.username = connCfg.username || 'admin'
   connCfg.grantType = connCfg.grantType || 'password'
   connCfg.clientId = connCfg.clientId || 'admin-cli'

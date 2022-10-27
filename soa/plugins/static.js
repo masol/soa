@@ -20,7 +20,7 @@ const { loadPkg } = require('../pkgs')
 module.exports.load = async function (fastify, sdl = {}) {
   const { _ } = fastify
   const cfgutil = fastify.config.util
-  const conf = _.isObject(sdl.conf) ? _.clone(sdl.conf) : {}
+  const conf = _.isObject(sdl.conf) ? _.cloneDeep(sdl.conf) : {}
   let subPath = conf.pathes || []
   if (!fastify._.isArray(subPath)) {
     subPath = []

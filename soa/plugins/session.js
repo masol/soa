@@ -16,7 +16,7 @@ module.exports.load = async function (fastify, srvName, sdl = {}) {
   // 确保cookie服务已加载。
   await soa.get('cookie')
   const session = await loadPkg(fastify, '@fastify/session', false)
-  const conf = _.isObject(sdl.conf) ? _.clone(sdl.conf) : {}
+  const conf = _.isObject(sdl.conf) ? _.cloneDeep(sdl.conf) : {}
   // console.log('sdl=', sdl)
   if (!conf.secret) {
     log.warn('session::未配置固定的secret,这导致每次重启服务无法获取上次session.')

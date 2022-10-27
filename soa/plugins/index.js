@@ -24,11 +24,11 @@ const internal = {
   cookie: '@fastify/cookie',
   multipart: '@fastify/multipart',
   bree: 'fastify-bree',
-  auth: 'pv-auth',
+  auth: '@masol/auth',
   // 'https-redirect': 'fastify-https-redirect',
   formbody: async (fastify, srvName, sdl) => {
     const pkg = await loadPkg(fastify, '@fastify/formbody', false)
-    const cfg = fastify._.isObject(sdl.conf) ? fastify._.clone(sdl.conf) : {}
+    const cfg = fastify._.isObject(sdl.conf) ? fastify._.cloneDeep(sdl.conf) : {}
     if (!cfg.parser) {
       const qs = require('qs')
       cfg.parser = str => qs.parse(str)

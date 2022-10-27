@@ -86,13 +86,12 @@ async function load (fastify, sdl = {}) {
         const readOpt = {
           encoding: (opt.buffer || bufExt[extName]) ? null : 'utf8'
         }
-        const ret = fs.readFile(fullPath, readOpt)
-        if (!opt.throw) {
-          ret.catch(e => {
-            return opt.erret || (readOpt.encoding ? '' : null)
-          })
+        if (opt.throw) {
+          return await fs.readFile(fullPath, readOpt)
         }
-        return await ret
+        return fs.readFile(fullPath, readOpt).catch(e => {
+          return opt.erret || (readOpt.encoding ? '' : null)
+        })
       }
     }
 
