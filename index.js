@@ -26,7 +26,7 @@ const bootstrap = require('./lib/boot')
  * @param {Object} config 全局config对象。为其扩展便捷函数。
  * @returns
  */
-async function getUtil (config) {
+async function getUtil(config) {
   const cryptoRandom = await import('crypto-random-string')
   _.cryptoRandom = cryptoRandom.default
   _.glob = require('glob')
@@ -57,13 +57,25 @@ async function getUtil (config) {
   }
 }
 
-async function decorate (fastify, opts) {
-  // console.log('_.cryptoRandom=', _.cryptoRandom)
-  // console.log('_.cryptoRandom()=', _.cryptoRandom({ length: 64 }))
+async function decorate(fastify, opts = {}) {
   const util = await getUtil(fastify.config)
   fastify.decorate('_', util._)
 
   fastify.decorate('s', util.s)
+
+  if (util._.isObject(opts.fastify) && util._.isString(opts.fastify.domain)) {
+    const domainArray = opts.fastify.domain.split(',').map(e => util.s.trim(e))
+    // console.log("domainArray=", domainArray)
+    const s = util.s
+    fastify.addHook('onRequest', (request, reply, done) => {
+      const host = s.trim(s.strLeft(request.headers.host, ':'))
+      // console.log("request host=", host)
+      if (domainArray.indexOf(host) < 0) {
+        throw new error.BadRequestError('请使用合法域名访问.')
+      }
+      done()
+    })
+  }
 
   // 为$扩展lift系列函数。
   // extProm.ext(fastify, $)
@@ -85,7 +97,7 @@ async function decorate (fastify, opts) {
 }
 
 // 首次调用验证才会执行到这里，为ajv添加validator.js中的format.
-function ajvPlugin (ajv, opts) {
+function ajvPlugin(ajv, opts) {
   console.error('NOT IMPLEMENT:(add validator.js format to ajv)call into ajvPlugin')
 }
 
