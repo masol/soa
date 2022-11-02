@@ -19,6 +19,7 @@ const internal = {
   'circuit-breaker': '@fastify/circuit-breaker',
   accepts: '@fastify/accepts',
   compress: '@fastify/compress',
+  helmet: '@fastify/helmet',
   'rate-limit': '@fastify/rate-limit',
   static: staticPlugin.load,
   cookie: '@fastify/cookie',

@@ -71,9 +71,11 @@ async function decorate(fastify, opts = {}) {
       const host = s.trim(s.strLeft(request.headers.host, ':'))
       // console.log("request host=", host)
       if (domainArray.indexOf(host) < 0) {
-        throw new error.BadRequestError('请使用合法域名访问.')
+        reply.redirect(301, request.protocol + '://' + domainArray[0] + request.url);
+        // throw new error.BadRequestError('请使用合法域名访问.')
+      } else {
+        done()
       }
-      done()
     })
   }
 
