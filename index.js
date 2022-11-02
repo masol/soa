@@ -26,7 +26,7 @@ const bootstrap = require('./lib/boot')
  * @param {Object} config 全局config对象。为其扩展便捷函数。
  * @returns
  */
-async function getUtil(config) {
+async function getUtil (config) {
   const cryptoRandom = await import('crypto-random-string')
   _.cryptoRandom = cryptoRandom.default
   _.glob = require('glob')
@@ -57,7 +57,7 @@ async function getUtil(config) {
   }
 }
 
-async function decorate(fastify, opts = {}) {
+async function decorate (fastify, opts = {}) {
   const util = await getUtil(fastify.config)
   fastify.decorate('_', util._)
 
@@ -71,7 +71,7 @@ async function decorate(fastify, opts = {}) {
       const host = s.trim(s.strLeft(request.headers.host, ':'))
       // console.log("request host=", host)
       if (domainArray.indexOf(host) < 0) {
-        reply.redirect(301, request.protocol + '://' + domainArray[0] + request.url);
+        reply.redirect(301, request.protocol + '://' + domainArray[0] + request.url)
         // throw new error.BadRequestError('请使用合法域名访问.')
       } else {
         done()
@@ -99,7 +99,7 @@ async function decorate(fastify, opts = {}) {
 }
 
 // 首次调用验证才会执行到这里，为ajv添加validator.js中的format.
-function ajvPlugin(ajv, opts) {
+function ajvPlugin (ajv, opts) {
   console.error('NOT IMPLEMENT:(add validator.js format to ajv)call into ajvPlugin')
 }
 
