@@ -44,8 +44,9 @@ module.exports.load = async function (fastify, srvName, sdl = {}) {
   conf.cookieName = conf.cookieName || 'sid'
   conf.cookie = conf.cookie || { secure: false }
   conf.expires = conf.expires || 1800000
-
-  log.info('启用@fastify/session插件,启动参数:%o', sdl.conf || {})
+  if (!fastify.runcmd || fastify.runcmd.verbose) {
+    log.info('启用@fastify/session插件,启动参数:%o', sdl.conf || {})
+  }
   await fastify.register(session, conf)
 
   // if (conf.root || subPath.length > 0) {

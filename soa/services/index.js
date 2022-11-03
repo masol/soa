@@ -25,7 +25,9 @@ async function load (fastify, srvName, sdl = {}) {
     try {
       const service = require(`./${srvName}`)
       if (service && _.isFunction(service.load)) {
-        log.info('加载%s服务,启动参数:%o', srvName, sdl)
+        if (!fastify.runcmd || fastify.runcmd.verbose) {
+          log.info('加载%s服务,启动参数:%o', srvName, sdl)
+        }
         return await service.load(fastify, sdl)
       } else {
         log.error('获取默认服务%s时发生内部错误:未实现服务加载', srvName)

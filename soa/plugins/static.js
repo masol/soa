@@ -33,7 +33,9 @@ module.exports.load = async function (fastify, sdl = {}) {
     const fastifyStatic = await loadPkg(fastify, '@fastify/static', false)
     if (conf.root) {
       fastify.register(fastifyStatic, conf)
-      fastify.log.info('启用静态(static)插件,启动参数:%o', conf)
+      if (!fastify.runcmd || fastify.runcmd.verbose) {
+        fastify.log.info('启用静态(static)插件,启动参数:%o', conf)
+      }
     }
     fastify._.each(subPath, (v) => {
       v.decorateReply = false

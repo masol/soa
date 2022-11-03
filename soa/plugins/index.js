@@ -47,7 +47,9 @@ async function loadPlugin (fastify, packageName, sdl = {}) {
   const pkg = await loadPkg(fastify, packageName, false)
   await fastify.register(pkg, sdl.conf)
   // https://github.com/pinojs/pino/blob/master/docs/api.md#message
-  fastify.log.info(`启用${packageName}插件,启动参数:%o`, sdl.conf || {})
+  if (!fastify.runcmd || fastify.runcmd.verbose) {
+    fastify.log.info(`启用${packageName}插件,启动参数:%o`, sdl.conf || {})
+  }
   return pkg
 }
 
