@@ -20,6 +20,7 @@ const extConfig = require('./lib/config')
 const extUtil = require('./lib/util')
 const _ = require('lodash')
 const bootstrap = require('./lib/boot')
+const om = require('objectmodel')
 
 /**
  * 为了方便pipeline的工具使用，将fastify decorate的工具类抽取出来。
@@ -50,6 +51,7 @@ async function getUtil (config) {
   }
 
   return {
+    om,
     _,
     s,
     $,
@@ -62,6 +64,8 @@ async function decorate (fastify, opts = {}) {
   fastify.decorate('_', util._)
 
   fastify.decorate('s', util.s)
+
+  fastify.decorate('om', util.om)
 
   if (util._.isObject(opts.fastify) && util._.isString(opts.fastify.domain)) {
     const domainArray = opts.fastify.domain.split(',').map(e => util.s.trim(e))

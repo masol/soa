@@ -1045,6 +1045,11 @@ lru-cache@^6.0.0:
   dependencies:
     yallist "^4.0.0"
 
+lru-cache@^7.14.1:
+  version "7.14.1"
+  resolved "https://registry.npmmirror.com/lru-cache/-/lru-cache-7.14.1.tgz#8da8d2f5f59827edb388e63e459ac23d6d408fea"
+  integrity sha512-ysxwsnTKdAx96aTRdhDOCQfDgbHnt8SK0KY8SEjO0wHinhWOFTESbjVCMPbU1uGXg/ch4lifqx0wfjOawU2+WA==
+
 memory-cache@^0.2.0:
   version "0.2.0"
   resolved "https://registry.npmmirror.com/memory-cache/-/memory-cache-0.2.0.tgz#7890b01d52c00c8ebc9d533e1f8eb17e3034871a"
@@ -1130,6 +1135,11 @@ object.values@^1.1.5:
     call-bind "^1.0.2"
     define-properties "^1.1.3"
     es-abstract "^1.19.1"
+
+objectmodel@^4.4.0:
+  version "4.4.0"
+  resolved "https://registry.npmmirror.com/objectmodel/-/objectmodel-4.4.0.tgz#fee3df1ba1e5ac9dd77746bd4755ad78fd7aad3a"
+  integrity sha512-HG3okPJt6fIxJoE7Es1hw8r1V+6R3NJdmeRsp4IoyBd1r/qetwO7jdCy3nv3WCCNxvpD+rmQQSynLkTWcl67Yw==
 
 once@^1.3.0:
   version "1.4.0"
