@@ -21,6 +21,7 @@ const extUtil = require('./lib/util')
 const _ = require('lodash')
 const bootstrap = require('./lib/boot')
 const om = require('objectmodel')
+const moment = require('moment')
 
 /**
  * 为了方便pipeline的工具使用，将fastify decorate的工具类抽取出来。
@@ -52,6 +53,7 @@ async function getUtil (config) {
 
   return {
     om,
+    moment,
     _,
     s,
     $,
@@ -64,6 +66,8 @@ async function decorate (fastify, opts = {}) {
   fastify.decorate('_', util._)
 
   fastify.decorate('s', util.s)
+
+  fastify.decorate('moment', util.moment)
 
   fastify.decorate('om', util.om)
 

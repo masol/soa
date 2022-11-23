@@ -16,6 +16,8 @@ const internal = {
   vault: true,
   knex: true,
   keycloak: true,
+  fsm: true,
+  cache: true,
   oss: true
 }
 
