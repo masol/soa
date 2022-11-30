@@ -22,6 +22,7 @@ const _ = require('lodash')
 const bootstrap = require('./lib/boot')
 const om = require('objectmodel')
 const moment = require('moment')
+const net = require('net')
 
 /**
  * 为了方便pipeline的工具使用，将fastify decorate的工具类抽取出来。
@@ -72,14 +73,21 @@ async function decorate (fastify, opts = {}) {
   fastify.decorate('om', util.om)
 
   if (util._.isObject(opts.fastify) && util._.isString(opts.fastify.domain)) {
-    const domainArray = opts.fastify.domain.split(',').map(e => util.s.trim(e))
+    const domainArray = opts.fastify.domain.split(' ').map(e => util.s.trim(e))
     // console.log("domainArray=", domainArray)
+    let redirectDomain = domainArray[0]
+    for (let i = 0; i < domainArray.length; i++) {
+      if (!net.isIP(domainArray[i])) {
+        redirectDomain = domainArray[i]
+        break
+      }
+    }
     const s = util.s
     fastify.addHook('onRequest', (request, reply, done) => {
-      const host = s.trim(s.strLeft(request.headers.host, ':'))
+      const host = s.trim(s.strLeft(request.hostname, ':'))
       // console.log("request host=", host)
       if (domainArray.indexOf(host) < 0) {
-        reply.redirect(301, request.protocol + '://' + domainArray[0] + request.url)
+        reply.redirect(301, request.protocol + '://' + redirectDomain + request.url)
         // throw new error.BadRequestError('请使用合法域名访问.')
       } else {
         done()

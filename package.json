@@ -26,7 +26,7 @@
     "lru-cache": "^7.14.1",
     "memory-cache": "^0.2.0",
     "moment": "^2.29.4",
-    "objectmodel": "^4.4.0",
+    "objectmodel": "^4.4.1",
     "qs": "^6.11.0",
     "shelljs": "^0.8.5",
     "underscore.string": "^3.3.6",

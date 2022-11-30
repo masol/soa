@@ -1141,10 +1141,10 @@ object.values@^1.1.5:
     define-properties "^1.1.3"
     es-abstract "^1.19.1"
 
-objectmodel@^4.4.0:
-  version "4.4.0"
-  resolved "https://registry.npmmirror.com/objectmodel/-/objectmodel-4.4.0.tgz#fee3df1ba1e5ac9dd77746bd4755ad78fd7aad3a"
-  integrity sha512-HG3okPJt6fIxJoE7Es1hw8r1V+6R3NJdmeRsp4IoyBd1r/qetwO7jdCy3nv3WCCNxvpD+rmQQSynLkTWcl67Yw==
+objectmodel@^4.4.1:
+  version "4.4.1"
+  resolved "https://registry.npmmirror.com/objectmodel/-/objectmodel-4.4.1.tgz#0ac542e5b2eb0997949c8ba67879f68ad2b59c82"
+  integrity sha512-xoBWlB81ikqwz9fUsmoAirhsFVueAgYutGzrqk1SME4CVsCtb+5nG847uCF89DJRjtXDVZiRPshWSWlvBOsdLw==
 
 once@^1.3.0:
   version "1.4.0"
