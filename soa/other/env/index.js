@@ -13,7 +13,7 @@ const fs = require('fs').promises
 const path = require('path')
 
 class Env {
-  #target
+  #clusterName
   static inst = null
   static get (fastify, sdl = {}) {
     if (!Env.inst) {
@@ -41,12 +41,12 @@ class Env {
       vault: conf.vault || 'vault'
     }
     this.fastify = fastify
-    this.#target = (async () => {
+    this.#clusterName = (async () => {
       const realPath = await fs.realpath(cfgutil.path('config', 'active'))
       // console.log('realPath=', realPath)
-      that.#target = path.basename(realPath)
-      // console.log('targetName=', that.#target)
-      return that.#target
+      that.#clusterName = path.basename(realPath)
+      // console.log('clusterName=', that.#clusterName)
+      return that.#clusterName
     })()
   }
 
@@ -57,18 +57,18 @@ class Env {
     return srvs
   }
 
-  async target () {
+  async clusterName () {
     const { $ } = this.fastify
-    if ($.isPromise(this.#target)) {
-      this.#target = await this.#target
+    if ($.isPromise(this.#clusterName)) {
+      this.#clusterName = await this.#clusterName
     }
-    return this.#target
+    return this.#clusterName
   }
 
   async isDev () {
-    const target = await this.target()
-    console.log('target=', target)
-    return target === 'dev'
+    const clusterName = await this.clusterName()
+    // console.log('clusterName=', clusterName)
+    return clusterName === 'dev'
   }
 
   get locale () {
