@@ -18,14 +18,15 @@ const { loadPkg } = require('../pkgs')
  * @param {*} sdl
  */
 module.exports.load = async function (fastify, sdl = {}) {
-  const { _ } = fastify
+  const { soa, _ } = fastify
   const cfgutil = fastify.config.util
   const conf = _.isObject(sdl.conf) ? _.cloneDeep(sdl.conf) : {}
   let subPath = conf.pathes || []
   if (!fastify._.isArray(subPath)) {
     subPath = []
   }
-  if (cfgutil.isDev()) { // 无条件启用plugin.并修正root目录。
+  const env = await soa.get('env')
+  if (await env.isDev()) { // 无条件启用plugin.并修正root目录。
     conf.root = cfgutil.path('src', 'helper', 'root')
     // subPath.push({ root: path.join(cfgutil.path(), '..', '..', 'root'), prefix: '/admin/' })
   }

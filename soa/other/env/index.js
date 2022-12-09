@@ -9,7 +9,11 @@
 // Created On : 4 Sep 2022 By 李竺唐 of SanPolo.Co.LTD
 // File: index
 
+const fs = require('fs').promises
+const path = require('path')
+
 class Env {
+  #target
   static inst = null
   static get (fastify, sdl = {}) {
     if (!Env.inst) {
@@ -20,7 +24,9 @@ class Env {
 
   constructor (fastify, sdl = {}) {
     const conf = sdl.conf || {}
-    this.dev = !!conf.dev
+    const { config } = fastify
+    const cfgutil = config.util
+    const that = this
     this.cfg = {
       locale: conf.locale || 'zh-CN'
     }
@@ -34,10 +40,14 @@ class Env {
       oss: conf.oss || 'oss',
       vault: conf.vault || 'vault'
     }
-    if (this.dev) {
-      this.srvcfg.deploy = 'docker'
-    }
     this.fastify = fastify
+    this.#target = (async () => {
+      const realPath = await fs.realpath(cfgutil.path('config', 'active'))
+      // console.log('realPath=', realPath)
+      that.#target = path.basename(realPath)
+      // console.log('targetName=', that.#target)
+      return that.#target
+    })()
   }
 
   services () {
@@ -47,12 +57,22 @@ class Env {
     return srvs
   }
 
-  get locale () {
-    return this.cfg.locale
+  async target () {
+    const { $ } = this.fastify
+    if ($.isPromise(this.#target)) {
+      this.#target = await this.#target
+    }
+    return this.#target
   }
 
-  get bDev () {
-    return this.dev
+  async isDev () {
+    const target = await this.target()
+    console.log('target=', target)
+    return target === 'dev'
+  }
+
+  get locale () {
+    return this.cfg.locale
   }
 
   get index () {
