@@ -10,6 +10,7 @@
 // File: index
 
 const env = require('./env')
+const gql = require('./gql')
 
 const internal = {
   fastify: async (fastify, srvName, sdl) => {
@@ -19,6 +20,7 @@ const internal = {
     // }
     return { inst: fastify }
   },
+  gql: gql.load,
   env: env.load
 }
 

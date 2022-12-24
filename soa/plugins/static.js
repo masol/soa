@@ -10,6 +10,7 @@
 // File: static
 
 const { loadPkg } = require('../pkgs')
+const fs = require('fs')
 
 /**
  * 额外的加载static的代码。
@@ -26,8 +27,14 @@ module.exports.load = async function (fastify, sdl = {}) {
     subPath = []
   }
   const env = await soa.get('env')
-  if (await env.isDev()) { // 无条件启用plugin.并修正root目录。
-    conf.root = cfgutil.path('src', 'helper', 'root')
+  if (env.isDev()) { // 无条件启用plugin.并修正root目录。
+    const rootPath = cfgutil.path('src', 'helper', 'root')
+    try {
+      if (await fs.promises.access(rootPath, fs.constants.F_OK)) {
+        conf.root = rootPath
+      }
+    } catch (e) {
+    }
     // subPath.push({ root: path.join(cfgutil.path(), '..', '..', 'root'), prefix: '/admin/' })
   }
   if (conf.root || subPath.length > 0) {

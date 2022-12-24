@@ -9,11 +9,7 @@
 // Created On : 4 Sep 2022 By 李竺唐 of SanPolo.Co.LTD
 // File: index
 
-const fs = require('fs').promises
-const path = require('path')
-
 class Env {
-  #clusterName
   static inst = null
   static get (fastify, sdl = {}) {
     if (!Env.inst) {
@@ -24,9 +20,6 @@ class Env {
 
   constructor (fastify, sdl = {}) {
     const conf = sdl.conf || {}
-    const { config } = fastify
-    const cfgutil = config.util
-    const that = this
     this.cfg = {
       locale: conf.locale || 'zh-CN'
     }
@@ -41,13 +34,6 @@ class Env {
       vault: conf.vault || 'vault'
     }
     this.fastify = fastify
-    this.#clusterName = (async () => {
-      const realPath = await fs.realpath(cfgutil.path('config', 'active'))
-      // console.log('realPath=', realPath)
-      that.#clusterName = path.basename(realPath)
-      // console.log('clusterName=', that.#clusterName)
-      return that.#clusterName
-    })()
   }
 
   services () {
@@ -57,18 +43,10 @@ class Env {
     return srvs
   }
 
-  async clusterName () {
-    const { $ } = this.fastify
-    if ($.isPromise(this.#clusterName)) {
-      this.#clusterName = await this.#clusterName
-    }
-    return this.#clusterName
-  }
-
-  async isDev () {
-    const clusterName = await this.clusterName()
+  isDev () {
+    const { s } = this.fastify
     // console.log('clusterName=', clusterName)
-    return clusterName === 'dev'
+    return s.clusterName === 'dev'
   }
 
   get locale () {

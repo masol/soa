@@ -24,6 +24,9 @@ const om = require('objectmodel')
 const moment = require('moment')
 const net = require('net')
 
+const fs = require('fs').promises
+const path = require('path')
+
 /**
  * 为了方便pipeline的工具使用，将fastify decorate的工具类抽取出来。
  * @param {Object} config 全局config对象。为其扩展便捷函数。
@@ -62,10 +65,76 @@ async function getUtil (config) {
   }
 }
 
+async function getClusterName (cfgutil) {
+  const realPath = await fs.realpath(cfgutil.path('config', 'active'))
+  // console.log('realPath=', realPath)
+  return path.basename(realPath)
+}
+
+async function regSwagger (fastify, isDev, opts) {
+  const { _ } = fastify
+  if (isDev || opts.swagger) {
+    const conf = (opts.swagger && _.isObject(opts.swagger.conf)) ? opts.swagger.conf : {}
+    // swagger需要提前注册.否则可能会丢失route信息.
+    await fastify.register(require('@fastify/swagger'), _.merge({
+      swagger: {
+        info: {
+          title: 'API文档',
+          description: 'API文档',
+          version: '0.0.1'
+        },
+        externalDocs: {
+          url: 'https://swagger.io',
+          description: '访问swagger官网'
+        },
+        host: '127.0.0.1:3000',
+        schemes: ['http'],
+        consumes: ['application/json'],
+        produces: ['application/json'],
+        tags: [
+          { name: 'default', description: '未分组的end-points' },
+          { name: 'public', description: '用户无关的end-points' },
+          { name: 'user', description: '用户相关的end-points' }
+        ],
+        securityDefinitions: {
+          apiKey: {
+            type: 'apiKey',
+            name: 'apiKey',
+            in: 'header'
+          }
+        }
+      }
+    }, conf)
+    )
+
+    if (isDev || opts.swaggerui) {
+      const conf = (opts.swaggerui && _.isObject(opts.swaggerui.conf)) ? opts.swaggerui.conf : {}
+      // swagger需要提前注册.否则可能会丢失route信息.
+      await fastify.register(require('@fastify/swagger-ui'), _.merge({
+        routePrefix: '/documentation',
+        uiConfig: {
+          docExpansion: 'full',
+          deepLinking: false
+        },
+        uiHooks: {
+          onRequest: function (request, reply, next) { next() },
+          preHandler: function (request, reply, next) { next() }
+        },
+        staticCSP: true,
+        transformStaticCSP: (header) => header,
+        transformSpecification: (swaggerObject, request, reply) => { return swaggerObject },
+        transformSpecificationClone: true
+      }, conf))
+    }
+  }
+}
+
 async function decorate (fastify, opts = {}) {
   const util = await getUtil(fastify.config)
   fastify.decorate('_', util._)
 
+  const clusterName = await getClusterName(fastify.config.util)
+  util.s.clusterName = clusterName
   fastify.decorate('s', util.s)
 
   fastify.decorate('moment', util.moment)
@@ -108,6 +177,8 @@ async function decorate (fastify, opts = {}) {
 
   const soa = SOA.instance(fastify, opts)
   fastify.decorate('soa', soa)
+
+  await regSwagger(fastify, clusterName === 'dev', opts)
 
   await extUtil.ext(fastify)
   // await soa.get('formbody')
