@@ -13,6 +13,7 @@ const { print } = require('graphql')
 const gql = require('graphql-tag')
 const path = require('path')
 const { mergeTypeDefs, mergeResolvers } = require('@graphql-tools/merge')
+const { loadFiles } = require('@graphql-tools/load-files')
 const mercurius = require('mercurius')
 
 // 没有采用类似[Nexus](https://github.com/graphql-nexus/nexus)的helper来维护schema及resolver.
@@ -148,9 +149,18 @@ class Qpl {
     }
   }
 
+  async scanGqls (baseDir) {
+    const loadedFiles = await loadFiles(`${baseDir}/**/*.gql`)
+    if (loadedFiles.length > 0) {
+      this.#schemas = this.#fastify._.concat(this.#schemas, loadedFiles)
+    }
+    // console.log('loadedFiles=', loadedFiles)
+  }
+
   async scan (baseDir = 'src/helper/gql') {
     baseDir = path.isAbsolute(baseDir) ? baseDir : path.join(this.#fastify.dirname, baseDir)
     await this.scanSchemas(path.join(baseDir, 'schemas'))
+    await this.scanGqls(path.join(baseDir, 'schemas'))
     await this.scanResolvers(path.join(baseDir, 'resolvers'))
     await this.scanLoaders(path.join(baseDir, 'loaders'))
   }

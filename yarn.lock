@@ -75,6 +75,15 @@
     fastify-plugin "^4.0.0"
     ws "^8.0.0"
 
+"@graphql-tools/load-files@^6.6.1":
+  version "6.6.1"
+  resolved "https://registry.npmmirror.com/@graphql-tools/load-files/-/load-files-6.6.1.tgz#91ce18d910baf8678459486d8cccd474767bec0a"
+  integrity sha512-nd4GOjdD68bdJkHfRepILb0gGwF63mJI7uD4oJuuf2Kzeq8LorKa6WfyxUhdMuLmZhnx10zdAlWPfwv1NOAL4Q==
+  dependencies:
+    globby "11.1.0"
+    tslib "^2.4.0"
+    unixify "1.0.0"
+
 "@graphql-tools/merge@^8.3.14":
   version "8.3.14"
   resolved "https://registry.npmmirror.com/@graphql-tools/merge/-/merge-8.3.14.tgz#d4d0a645656691d35e90e0686a6fa3d4091a34da"
@@ -981,7 +990,7 @@ globals@^13.15.0:
   dependencies:
     type-fest "^0.20.2"
 
-globby@^11.1.0:
+globby@11.1.0, globby@^11.1.0:
   version "11.1.0"
   resolved "https://registry.npmmirror.com/globby/-/globby-11.1.0.tgz#bd4be98bb042f83d796f7e3811991fbe82a0d34b"
   integrity sha512-jhIXaOzy1sb8IyocaruWSn1TjmnBVs8Ayhcy83rmxNJ8q2uWKCAj3CnJY+KpGSXCueAPc0i05kVvVKtP1t9S3g==
@@ -1420,6 +1429,13 @@ natural-compare@^1.4.0:
   resolved "https://registry.npmmirror.com/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
   integrity sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==
 
+normalize-path@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.npmmirror.com/normalize-path/-/normalize-path-2.1.1.tgz#1ab28b556e198363a8c1a6f7e6fa20137fe6aed9"
+  integrity sha512-3pKJwH184Xo/lnH6oyP1q2pMd7HcypqqmRs91/6/i2CGtWwIKGCkOOMTm/zXbgTEWHw1uNpNi/igc3ePOYHb6w==
+  dependencies:
+    remove-trailing-separator "^1.0.1"
+
 object-inspect@^1.12.2, object-inspect@^1.9.0:
   version "1.12.2"
   resolved "https://registry.npmmirror.com/object-inspect/-/object-inspect-1.12.2.tgz#c0641f26394532f28ab8d796ab954e43c009a8ea"
@@ -1610,6 +1626,11 @@ regexpp@^3.0.0, regexpp@^3.2.0:
   version "3.2.0"
   resolved "https://registry.npmmirror.com/regexpp/-/regexpp-3.2.0.tgz#0425a2768d8f23bad70ca4b90461fa2f1213e1b2"
   integrity sha512-pq2bWo9mVD43nbts2wGv17XLiNLya+GklZ8kaDLV2Z08gDCsGpnKn9BFMepvWuHCbyVvY7J5o5+BVvoQbmlJLg==
+
+remove-trailing-separator@^1.0.1:
+  version "1.1.0"
+  resolved "https://registry.npmmirror.com/remove-trailing-separator/-/remove-trailing-separator-1.1.0.tgz#c24bce2a283adad5bc3f58e0d48249b92379d8ef"
+  integrity sha512-/hS+Y0u3aOfIETiaiirUFwDBDzmXPvO+jAfKTitUngIPzdKc6Z0LoFjM/CK5PL4C+eKwHohlHAb6H0VFfmmUsw==
 
 resolve-from@^4.0.0:
   version "4.0.0"
@@ -1894,6 +1915,13 @@ undici@^5.0.0:
   integrity sha512-yJlHYw6yXPPsuOH0x2Ib1Km61vu4hLiRRQoafs+WUgX1vO64vgnxiCEN9dpIrhZyHFsai3F0AEj4P9zy19enEQ==
   dependencies:
     busboy "^1.6.0"
+
+unixify@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.npmmirror.com/unixify/-/unixify-1.0.0.tgz#3a641c8c2ffbce4da683a5c70f03a462940c2090"
+  integrity sha512-6bc58dPYhCMHHuwxldQxO3RRNZ4eCogZ/st++0+fcC1nr0jiGUtAdBJ2qzmLQWSxbtz42pWt4QQMiZ9HvZf5cg==
+  dependencies:
+    normalize-path "^2.1.1"
 
 uri-js@^4.2.2:
   version "4.4.1"
