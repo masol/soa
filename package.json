@@ -32,6 +32,7 @@
     "lru-cache": "^7.14.1",
     "memory-cache": "^0.2.0",
     "mercurius": "^11.4.0",
+    "mercurius-logging": "^1.2.0",
     "moment": "^2.29.4",
     "objectmodel": "^4.4.1",
     "qs": "^6.11.0",

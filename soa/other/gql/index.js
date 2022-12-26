@@ -15,6 +15,7 @@ const path = require('path')
 const { mergeTypeDefs, mergeResolvers } = require('@graphql-tools/merge')
 const { loadFiles } = require('@graphql-tools/load-files')
 const mercurius = require('mercurius')
+const gqlogger = require('mercurius-logging')
 
 // 没有采用类似[Nexus](https://github.com/graphql-nexus/nexus)的helper来维护schema及resolver.
 // 这些文件假定由codegen创建,而不是手动书写.
@@ -22,6 +23,7 @@ const mercurius = require('mercurius')
 class Qpl {
   #fastify
   #conf
+  #logger
   #schemas
   #resolvers
   #loaders
@@ -34,9 +36,9 @@ class Qpl {
   }
 
   constructor (fastify, sdl = {}) {
-    const conf = sdl.conf || {}
     this.#fastify = fastify
-    this.#conf = conf
+    this.#conf = sdl.conf || {}
+    this.#logger = sdl.logger || {}
     this.#schemas = []
     this.#resolvers = {}
     this.#loaders = {}
@@ -44,6 +46,8 @@ class Qpl {
 
   async #merge (targetName, values) {
     // const { _ } = this.#fastify
+    console.log('targetName=', targetName)
+    console.log('values=', values)
     switch (targetName) {
       case '#resolvers':
         values.unshift(this.#resolvers)
@@ -70,12 +74,12 @@ class Qpl {
         const m = require(files[i])
         if ($.isFunction(m)) {
           const ret = m(that.#fastify)
-          if (_.isObject(ret)) {
-            // console.log(targetName, 'ret=', ret)
+          if ($.isPromise(ret)) {
+            tasks.push(ret)
+          } else if (_.isObject(ret)) {
+            console.log(targetName, 'ret=', ret)
             that.#merge(targetName, [ret])
             // console.log(targetName, 'that.#resolvers=', that.#resolvers)
-          } else if ($.isPromise(ret)) {
-            tasks.push(ret)
           } else {
             log.error('加载qpl %s时返回非对象:%s', files[i], ret)
           }
@@ -184,8 +188,17 @@ class Qpl {
           opts.graphiql = true
         }
       }
+      opts.context = opts.context || ((request, reply) => {
+        // Return an object that will be available in your GraphQL resolvers
+        return {
+          request
+        }
+      })
       console.log('opts=', opts)
       await this.#fastify.register(mercurius, opts)
+      if (!this.#logger.disabled) {
+        await this.#fastify.register(gqlogger, this.#logger)
+      }
     } else {
       log.warn('未指定任意GraphQL Schemas,禁用GraphQL支持.')
     }

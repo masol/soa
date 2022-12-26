@@ -15,7 +15,15 @@ const staticPlugin = require('./static')
 // const socketioPlugin = require('./socketio')
 
 const internal = {
-  cors: '@fastify/cors',
+  cors: async (fastify, srvName, sdl) => {
+    const pkg = await loadPkg(fastify, '@fastify/cors', false)
+    const cfg = fastify._.isObject(sdl.conf) ? fastify._.cloneDeep(sdl.conf) : {}
+    if (!cfg.origin) {
+      fastify.log.warn('未指定cors策略,强制设置为允许全部域名访问.请设置合适的origin')
+      cfg.origin = '*'
+    }
+    await fastify.register(pkg, cfg)
+  },
   'circuit-breaker': '@fastify/circuit-breaker',
   accepts: '@fastify/accepts',
   compress: '@fastify/compress',
