@@ -46,8 +46,8 @@ class Qpl {
 
   async #merge (targetName, values) {
     // const { _ } = this.#fastify
-    console.log('targetName=', targetName)
-    console.log('values=', values)
+    // console.log('targetName=', targetName)
+    // console.log('values=', values)
     switch (targetName) {
       case '#resolvers':
         values.unshift(this.#resolvers)

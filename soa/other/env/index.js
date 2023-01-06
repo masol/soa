@@ -29,8 +29,7 @@ class Env {
       share: conf.share || 'redis',
       fs: conf.fs || 'local',
       static: conf.static || 'local',
-      sso: conf.sso || 'passport',
-      oss: conf.oss || 'oss',
+      sso: conf.sso || 'passport', // oss,slauth(state less auth)
       vault: conf.vault || 'vault'
     }
     this.fastify = fastify

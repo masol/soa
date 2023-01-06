@@ -12,9 +12,9 @@
 const Manager = require('./manage')
 
 async function load (fastify, sdl = {}) {
-  console.log('Manager=', Manager)
+  // console.log('Manager=', Manager)
   const inst = new Manager(fastify, sdl.conf)
-  console.log('inst=', inst.load)
+  // console.log('inst=', inst.load)
   return { inst }
 }
 

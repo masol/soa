@@ -30,7 +30,7 @@ class FSManger {
    * 注册fsm类
    */
   reg (clsName, Cls) {
-    console.log('register :', clsName, Cls)
+    // console.log('register :', clsName, Cls)
     this.#factories[clsName] = Cls
   }
 
