@@ -130,6 +130,9 @@ async function regSwagger (fastify, isDev, opts) {
 }
 
 async function decorate (fastify, opts = {}) {
+  if (!global.fastify) { // 将fastify放入global名称空间中．
+    global.fastify = fastify
+  }
   const util = await getUtil(fastify.config)
   fastify.decorate('_', util._)
 

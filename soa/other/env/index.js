@@ -9,35 +9,40 @@
 // Created On : 4 Sep 2022 By 李竺唐 of SanPolo.Co.LTD
 // File: index
 
+const DefFrameWork = {
+  index: 'elastic',
+  db: 'knex',
+  kv: 'redis',
+  res: false, // 资源存储服务(suoss: sign url oss)
+  sso: 'corsess', // 'passport', // corsess(state less session)
+  vault: 'vault'// 根据vault issue来判定其发行者.默认是local.see vault service.
+}
+
 class Env {
-  static inst = null
+  static #inst = null
+  #cfg // 保存了配置信息,例如locale.
+  #srvcfg // 保存了服务框架选择.
   static get (fastify, sdl = {}) {
-    if (!Env.inst) {
-      Env.inst = new Env(fastify, sdl)
+    if (!Env.#inst) {
+      Env.#inst = new Env(fastify, sdl)
     }
-    return Env.inst
+    return Env.#inst
   }
 
   constructor (fastify, sdl = {}) {
+    const { _ } = fastify
     const conf = sdl.conf || {}
-    this.cfg = {
+    this.#cfg = {
       locale: conf.locale || 'zh-CN'
     }
-    this.srvcfg = {
-      index: conf.index || 'elastic',
-      db: conf.db || 'knex',
-      share: conf.share || 'redis',
-      fs: conf.fs || 'local',
-      static: conf.static || 'local',
-      sso: conf.sso || 'passport', // oss,slauth(state less auth)
-      vault: conf.vault || 'vault'
-    }
+    this.#srvcfg = _.assign(_.clone(DefFrameWork),
+      _.pick(conf, _.keys(DefFrameWork)))
     this.fastify = fastify
   }
 
   services () {
     const { _ } = this.fastify
-    const srvs = _.filter(_.values(this.srvcfg), v => v && v !== 'local')
+    const srvs = _.filter(_.values(this.#srvcfg), v => v && v !== 'local' && v !== 'false')
     // this.fastify.log.debug('valid srvs=%o', srvs)
     return srvs
   }
@@ -49,31 +54,27 @@ class Env {
   }
 
   get locale () {
-    return this.cfg.locale
+    return this.#cfg.locale
   }
 
   get index () {
-    return this.srvcfg.index
+    return this.#srvcfg.index
   }
 
   get db () {
-    return this.srvcfg.db
+    return this.#srvcfg.db
   }
 
-  get share () {
-    return this.srvcfg.share
+  get kv () {
+    return this.#srvcfg.kv
   }
 
-  get fs () {
-    return this.srvcfg.fs
-  }
-
-  get static () {
-    return this.srvcfg.static
+  get res () {
+    return this.#srvcfg.res
   }
 
   get vault () {
-    return this.srvcfg.vault
+    return this.#srvcfg.vault
   }
 }
 

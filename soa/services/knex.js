@@ -25,7 +25,7 @@ async function load (fastify, sdl = {}) {
   conf.connection.user = conf.connection.user || 'app'
   conf.connection.database = conf.connection.database || 'app'
   // 不产生新密码，如果密码不存在，直接抛出异常。
-  conf.connection.password = conf.connection.password || await vault.read('postgres/app.passwd', { throw: true })
+  conf.connection.password = conf.connection.password || await vault.read('$file:postgres/app.passwd', { throw: true })
 
   // log.debug('knext conf=%o', conf)
   await fastify.shell.require(conf.client)

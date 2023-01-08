@@ -17,9 +17,10 @@ const HashiCorp = 'HashiCorp'
 const bufExt = {
   '.crt': true
 }
+const $FilePrefix = '$file:'
 
 async function load (fastify, sdl = {}) {
-  const { _ } = fastify
+  const { _, s } = fastify
   const cfgutil = fastify.config.util
   const tokenPath = cfgutil.path('config', 'active', 'vault', 'root.token')
 
@@ -72,15 +73,22 @@ async function load (fastify, sdl = {}) {
       await vault.unseal({ secret_shares: secretShares, key: keys[0] })
     }
     fastify.log.debug('registed vault object=%o', vault)
-    Vault.issue = HashiCorp
+    vault.issue = HashiCorp
+    // @TODO: 需要将HashiCorp Vault封装为相似接口,再返回.
     return { inst: vault }
   } else {
     const vault = {
       issue: 'local',
-      read: async (pathName, opt = {}) => {
+      // 读取secVal的值,如果以'$file:'开头,意味着是一个文件,从文件中读取.否则视为值,直接返回值内容.
+      read: async (secVal, opt = {}) => {
         // 例如postgres/app.passwd, elastic/passwd, elastic/http_ca.crt
+        if (s.startsWith(secVal, $FilePrefix)) {
+          secVal = s.strRight(secVal, ':')
+        } else {
+          return secVal
+        }
         const basePath = cfgutil.path('config', 'active')
-        const subPath = path.join.apply(path, pathName.split('/'))
+        const subPath = path.join.apply(path, secVal.split('/'))
         const fullPath = path.join(basePath, subPath)
         const extName = path.extname(fullPath)
         const readOpt = {
@@ -94,7 +102,6 @@ async function load (fastify, sdl = {}) {
         })
       }
     }
-
     return { inst: vault }
   }
 }

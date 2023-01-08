@@ -18,7 +18,8 @@ const internal = {
   keycloak: true,
   fsm: true,
   cache: true,
-  oss: true
+  oss: true,
+  corsess: true
 }
 
 async function load (fastify, srvName, sdl = {}) {

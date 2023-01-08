@@ -20,12 +20,12 @@ async function buildClient (fastify, Client, sdl = {}) {
   const conf = sdl.conf || {}
   const vault = await soa.get('vault')
   if (!conf.caFingerprint) {
-    const ca = await vault.read('elastic/http_ca.crt')
+    const ca = await vault.read('$file:elastic/http_ca.crt')
     if (ca) {
       baseOpt.tls.ca = ca
     }
   }
-  const passwd = s.trim((await vault.read('elastic/passwd')), [' ', '\n', '\r'])
+  const passwd = s.trim((await vault.read('$file:elastic/passwd')), [' ', '\n', '\r'])
   // console.log('passwd=', passwd)
   if (passwd) {
     baseOpt.auth.password = passwd

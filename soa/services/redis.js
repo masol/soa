@@ -45,7 +45,7 @@ async function load (fastify, sdl = {}) {
   const { _, log, soa } = fastify
   const pkg = sdl.package || 'ioredis'
   const vault = await soa.get('vault')
-  const passwd = await vault.read('redis/password')
+  const passwd = await vault.read('$file:redis/password')
   const redisConf = _.isObject(sdl.conf) ? _.cloneDeep(sdl.conf) : {}
   if (passwd) { // 如果有密码，加入并覆盖配置中的密码项。
     redisConf.password = passwd

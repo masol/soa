@@ -27,7 +27,7 @@ module.exports.load = async function (fastify, srvName, sdl = {}) {
     log.warn('session退化至内存store,尚未支持store的字符串定义:%s', conf.store)
   } else {
     const env = await soa.get('env')
-    if (env.share === 'redis' && !conf.store) {
+    if (env.kv === 'redis' && !conf.store) {
       const connectRedis = await loadPkg(fastify, 'connect-redis', true)
       const RedisStore = connectRedis.default(session)
       // console.log('RedisStore=', RedisStore)

@@ -17,6 +17,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@fastify/forwarded": "^2.1.0",
+    "@fastify/jwt": "^6.5.0",
     "@fastify/swagger": "^8.2.1",
     "@fastify/swagger-ui": "^1.3.0",
     "@graphql-tools/load-files": "^6.6.1",
