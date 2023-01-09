@@ -26,7 +26,7 @@ const internal = {
     if (!cfg.exposedHeaders) {
       cfg.exposedHeaders = ['set-token', 'set-act']
     }
-    console.log('cfg.credentials=', cfg.credentials)
+    // console.log('cfg.credentials=', cfg.credentials)
     if (!_.has(cfg, 'credentials')) {
       cfg.credentials = true
     }
