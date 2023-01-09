@@ -65,6 +65,7 @@ class Session {
     }
   }
 
+  // @TODO:是否重置olddata?
   save (callback) {
     const that = this
     if (callback) {

@@ -275,6 +275,10 @@ class SessMan {
     // console.log('meta=', meta)
     const token = await fastify.jwt.sign(meta)
     if (reply) {
+      if (!request.session.isModified()) {
+        // 强制保存一次，以刷新redis的ttl.
+        await request.session.save()
+      }
       reply.header(TokenHeader, encodeURI(token))
     }
     // console.log('token=', token)
