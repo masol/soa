@@ -11,6 +11,29 @@
 
 const SessMan = require('./sessman')
 
+function extractToken (request) {
+  const { error } = global.fastify
+  let token
+  if (request.headers && request.headers.authorization) {
+    const parts = request.headers.authorization.split(' ')
+    if (parts.length === 1) {
+      token = request.headers.authorization
+    } else if (parts.length === 2) {
+      const scheme = parts[0]
+      token = parts[1]
+      if (!/^Bearer$/i.test(scheme)) {
+        throw new error.BadRequestError()
+      }
+    }
+  } else { // @TODO: 开始检查queryString
+
+  }
+  if (!token) {
+    throw new error.BadRequestError()
+  }
+  return token
+}
+
 module.exports.load = async function (fastify, sdl = {}) {
   const { _, soa } = fastify
   const conf = _.isObject(sdl.conf) ? _.cloneDeep(sdl.conf) : {}
@@ -34,6 +57,10 @@ module.exports.load = async function (fastify, sdl = {}) {
   conf.trusted = async (request, decodedToken) => {
     // console.log('decodedToken=', decodedToken)
     return await inst.$validToken(request, decodedToken)
+  }
+  conf.verify = {
+    errorCacheTTL: 600000,
+    extractToken
   }
   const jwt = require('@fastify/jwt')
   await fastify.register(jwt, conf)
