@@ -10,11 +10,12 @@
 // File: index
 
 const DefFrameWork = {
-  index: 'elastic',
+  ftxt: 'elastic', // full-text search service. 'solr','zinc'...
   db: 'knex',
   kv: 'redis',
   res: false, // 资源存储服务(suoss: sign url oss)
-  sso: 'corsess', // 'passport', // corsess(state less session)
+  sess: 'corsess', // session.
+  sso: 'passport', // 'keycloak'
   vault: 'vault'// 根据vault issue来判定其发行者.默认是local.see vault service.
 }
 
@@ -43,7 +44,7 @@ class Env {
   services () {
     const { _ } = this.fastify
     const srvs = _.filter(_.values(this.#srvcfg), v => v && v !== 'local' && v !== 'false')
-    // this.fastify.log.debug('valid srvs=%o', srvs)
+    this.fastify.log.debug('valid srvs=%o', srvs)
     return srvs
   }
 
@@ -57,8 +58,12 @@ class Env {
     return this.#cfg.locale
   }
 
-  get index () {
-    return this.#srvcfg.index
+  get sess () {
+    return this.#srvcfg.sess
+  }
+
+  get ftxt () {
+    return this.#srvcfg.ftxt
   }
 
   get db () {

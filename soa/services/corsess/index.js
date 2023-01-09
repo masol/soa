@@ -9,7 +9,7 @@
 // Created On : 7 Jan 2023 By 李竺唐 of 北京飞鹿软件技术研究院
 // File: index
 
-const Session = require('./session')
+const SessMan = require('./sessman')
 
 module.exports.load = async function (fastify, sdl = {}) {
   const { _, soa } = fastify
@@ -26,7 +26,7 @@ module.exports.load = async function (fastify, sdl = {}) {
     await readVault('private')
     await readVault('public')
   }
-  const inst = new Session()
+  const inst = new SessMan(sdl.session)
   await inst.init(fastify)
   conf.decoratorName = 'session'
   // 将result中的session返回．要求在trust时设置此成员．

@@ -12,7 +12,9 @@
 module.exports.load = async function (fastify, srvName, sdl = {}) {
   const { soa } = fastify
   const { loadPkg } = require('../../pkgs')
-  await soa.get('session')
+  const env = await soa.get('env')
+  const session = console.log('evn.sess=', env.sess)
+  await soa.get(env.sess)
   const passportModule = (await loadPkg(fastify, '@fastify/passport', true))
   // const passport = new passportModule.Authenticator()
   const passport = passportModule.default
@@ -38,6 +40,9 @@ module.exports.load = async function (fastify, srvName, sdl = {}) {
   passport.registerUserSerializer(async (user, request) => {
     // console.log('registerUserSerializer: user=', user)
     // log.debug('enter serializer:%o', user)
+    if (env.sess === 'corsess') {
+      await session.ensure(request)
+    }
     return JSON.stringify(user)
   })
 
