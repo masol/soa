@@ -16,11 +16,30 @@ const staticPlugin = require('./static')
 
 const internal = {
   cors: async (fastify, srvName, sdl) => {
+    const { _, log } = fastify
     const pkg = await loadPkg(fastify, '@fastify/cors', false)
-    const cfg = fastify._.isObject(sdl.conf) ? fastify._.cloneDeep(sdl.conf) : {}
+    const cfg = _.isObject(sdl.conf) ? _.cloneDeep(sdl.conf) : {}
     if (!cfg.origin) {
-      fastify.log.warn('未指定cors策略,强制设置为允许全部域名访问.请设置合适的origin')
+      log.warn('未指定cors策略,强制设置为允许全部域名访问.请设置合适的origin')
       cfg.origin = '*'
+    }
+    if (!cfg.exposedHeaders) {
+      cfg.exposedHeaders = ['set-token', 'set-act']
+    }
+    console.log('cfg.credentials=', cfg.credentials)
+    if (!_.has(cfg, 'credentials')) {
+      cfg.credentials = true
+    }
+    if (!cfg.credentials) { // 如果禁用了credentials,需要明确允许authorization,content-type
+      cfg.allowedHeaders = cfg.allowedHeaders || ''
+      const allowedHeaders = 'authorization,content-type'
+      if (_.isString(cfg.allowedHeaders) && cfg.allowedHeaders) {
+        cfg.allowedHeaders += allowedHeaders
+      } else if (_.isArray(cfg.allowedHeaders)) {
+        cfg.allowedHeaders = _.concat(cfg.allowedHeaders, allowedHeaders.split(','))
+      } else {
+        cfg.allowedHeaders = allowedHeaders
+      }
     }
     await fastify.register(pkg, cfg)
   },
