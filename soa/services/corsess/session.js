@@ -75,6 +75,10 @@ class Session {
     }
   }
 
+  touch (request, reply, ttl) {
+    return CorsessInst.token(request, reply, ttl)
+  }
+
   set (k, v) {
     const { _ } = global.fastify
     if (_.isUndefined(v)) {

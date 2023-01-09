@@ -75,6 +75,7 @@ class SessMan {
       throw new Error('corsess:未能初始化store!')
     }
     Session.setInst(this)
+    fastify.decorate('sessionStore', this.#store)
     fastify.addHook('onRequest', _.bind(this.#onRequest, this))
     fastify.addHook('onSend', _.bind(this.#onSend, this))
   }
@@ -266,11 +267,19 @@ class SessMan {
   // string|null 获取当前session的token.并不会设置进入cookie,需要调用者传递给客户端.如未初始化,会自动调用ensure(false)
   async token (request, reply = null, ttl = null) {
     const fastify = global.fastify
-    const { moment } = fastify
+    const { moment, _ } = fastify
     await this.ensure(request)
     const meta = request.session.meta() || {}
     if (!meta.exp) {
-      meta.exp = moment().add(ttl || this.#ttl).unix()
+      if (ttl) {
+        if (_.isNumber(ttl)) {
+          meta.exp = moment().add(ttl, 'seconds').unix()
+        } else {
+          meta.exp = moment().add(ttl).unix()
+        }
+      } else {
+        meta.exp = moment().add(this.#ttl).unix()
+      }
     }
     // console.log('meta=', meta)
     const token = await fastify.jwt.sign(meta)
