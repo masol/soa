@@ -194,7 +194,7 @@ class Qpl {
           request
         }
       })
-      console.log('opts=', opts)
+      // console.log('opts=', opts)
       await this.#fastify.register(mercurius, opts)
       if (!this.#logger.disabled) {
         await this.#fastify.register(gqlogger, this.#logger)

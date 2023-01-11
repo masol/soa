@@ -14,6 +14,30 @@ const staticPlugin = require('./static')
 // const sessionPlugin = require('./session')
 // const socketioPlugin = require('./socketio')
 
+/**
+ *
+ * @param {String|Array<String>|null} orig 需要检查重复的原始值．
+ * @param {Array<String>} hArr 不重复加入的数组．
+*/
+function appendHeaders (_, orig, hArr) {
+  if (!orig) {
+    return hArr.join(',')
+  }
+  let srcArr = []
+  if (_.isArray(orig)) {
+    srcArr = orig
+  } else if (_.isString(orig)) {
+    srcArr = orig.split(',')
+  }
+  for (const header of hArr) {
+    if (_.indexOf(srcArr, header) < 0) {
+      srcArr.push(header)
+    }
+  }
+  return srcArr.join(',')
+}
+const ExposeHeaders = ['set-token', 'set-live']
+const AllowHeaders = ['authorization', 'content-type', 'vid']
 const internal = {
   cors: async (fastify, srvName, sdl) => {
     const { _, log } = fastify
@@ -23,24 +47,24 @@ const internal = {
       log.warn('未指定cors策略,强制设置为允许全部域名访问.请设置合适的origin')
       cfg.origin = '*'
     }
-    if (!cfg.exposedHeaders) {
-      cfg.exposedHeaders = ['set-token', 'set-act']
-    }
+
+    cfg.exposedHeaders = appendHeaders(_, cfg.exposedHeaders, ExposeHeaders)
+    cfg.allowedHeaders = appendHeaders(_, cfg.allowedHeaders, AllowHeaders)
     // console.log('cfg.credentials=', cfg.credentials)
-    if (!_.has(cfg, 'credentials')) {
-      cfg.credentials = true
-    }
-    if (!cfg.credentials) { // 如果禁用了credentials,需要明确允许authorization,content-type
-      cfg.allowedHeaders = cfg.allowedHeaders || ''
-      const allowedHeaders = 'authorization,content-type'
-      if (_.isString(cfg.allowedHeaders) && cfg.allowedHeaders) {
-        cfg.allowedHeaders += allowedHeaders
-      } else if (_.isArray(cfg.allowedHeaders)) {
-        cfg.allowedHeaders = _.concat(cfg.allowedHeaders, allowedHeaders.split(','))
-      } else {
-        cfg.allowedHeaders = allowedHeaders
-      }
-    }
+    // if (!_.has(cfg, 'credentials')) {
+    //   cfg.credentials = true
+    // }
+    // if (!cfg.credentials) { // 如果禁用了credentials,需要明确允许authorization,content-type
+    //   cfg.allowedHeaders = cfg.allowedHeaders || ''
+    //   const allowedHeaders = 'authorization,content-type,vid'
+    //   if (_.isString(cfg.allowedHeaders) && cfg.allowedHeaders) {
+    //     cfg.allowedHeaders += allowedHeaders
+    //   } else if (_.isArray(cfg.allowedHeaders)) {
+    //     cfg.allowedHeaders = _.concat(cfg.allowedHeaders, allowedHeaders.split(','))
+    //   } else {
+    //     cfg.allowedHeaders = allowedHeaders
+    //   }
+    // }
     await fastify.register(pkg, cfg)
   },
   'circuit-breaker': '@fastify/circuit-breaker',
