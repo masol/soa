@@ -16,6 +16,10 @@ const DefFrameWork = {
   res: false, // 资源存储服务(suoss: sign url oss)
   sess: 'corsess', // session.
   sso: 'passport', // 'keycloak'
+  push: 'socketio', // 'uwebsocket','ws' //ws基于@fastify/websocket和mqemitter-redis.基于BO的对资源命名规则来实现．
+  predic: false, // 'mindsdb','mldb','xgboost' //预测服务.基于数据训练或prolog或人工编制的规则．形成virtual table/field的概念．
+  // dqm: 'bullmq', // 'bee(https://github.com/bee-queue/bee-queue)','celery(https://docs.celeryq.dev/en/stable/)'  Distributed Queue Management
+  p2p: false, // libp2p, webrtc, swarm,tor,bittorrent //p2p存储(区块链).私有可控通过fuse以文件系统方式访问．
   vault: 'vault'// 根据vault issue来判定其发行者.默认是local.see vault service.
 }
 
@@ -46,6 +50,20 @@ class Env {
     const srvs = _.filter(_.values(this.#srvcfg), v => v && v !== 'local' && v !== 'false')
     this.fastify.log.debug('valid srvs=%o', srvs)
     return srvs
+  }
+
+  /**
+   * 获取指定类别下的服务．
+   * @param {string} cateName 类别名称只能是DefFrameWork中的一个．
+   * @returns 服务实例或null
+   */
+  async srv (cateName) {
+    const { soa } = this.fastify
+    const srvName = this.#srvcfg[cateName]
+    if (!srvName || srvName === 'local' || srvName === 'false') {
+      return null
+    }
+    return await soa.get()
   }
 
   isDev () {

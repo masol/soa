@@ -190,7 +190,7 @@ async function decorate (fastify, opts = {}) {
 
 // 首次调用验证才会执行到这里，为ajv添加validator.js中的format.
 function ajvPlugin (ajv, opts) {
-  console.error('NOT IMPLEMENT:(add validator.js format to ajv)call into ajvPlugin')
+  // console.error('NOT IMPLEMENT:(add validator.js format to ajv)call into ajvPlugin')
 }
 
 module.exports.decorate = decorate
