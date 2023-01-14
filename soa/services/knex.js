@@ -43,6 +43,7 @@ async function load (fastify, sdl = {}) {
     })
     if (_.isObject(heart) && !heart.isOk) {
       log.error('knex-utils: heartbeat失败:%s', heart.error ? heart.error.code : JSON.stringify(heart))
+      throw heart.error
     } else {
       log.debug('knext heart=%o', heart)
     }

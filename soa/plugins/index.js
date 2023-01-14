@@ -50,20 +50,11 @@ const internal = {
 
     cfg.exposedHeaders = appendHeaders(_, cfg.exposedHeaders, ExposeHeaders)
     cfg.allowedHeaders = appendHeaders(_, cfg.allowedHeaders, AllowHeaders)
-    // console.log('cfg.credentials=', cfg.credentials)
-    // if (!_.has(cfg, 'credentials')) {
-    //   cfg.credentials = true
+    // if (!_.has(cfg, 'preflight')) {
+    //   cfg.preflight = false
     // }
-    // if (!cfg.credentials) { // 如果禁用了credentials,需要明确允许authorization,content-type
-    //   cfg.allowedHeaders = cfg.allowedHeaders || ''
-    //   const allowedHeaders = 'authorization,content-type,vid'
-    //   if (_.isString(cfg.allowedHeaders) && cfg.allowedHeaders) {
-    //     cfg.allowedHeaders += allowedHeaders
-    //   } else if (_.isArray(cfg.allowedHeaders)) {
-    //     cfg.allowedHeaders = _.concat(cfg.allowedHeaders, allowedHeaders.split(','))
-    //   } else {
-    //     cfg.allowedHeaders = allowedHeaders
-    //   }
+    // if (!_.has(cfg, 'strictPreflight')) {
+    //   cfg.strictPreflight = false
     // }
     await fastify.register(pkg, cfg)
   },

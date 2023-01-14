@@ -22,7 +22,7 @@ module.exports.load = async function (fastify, sdl = {}) {
   if (!opts.cors.origin) {
     opts.cors.origin = true
     // opts.cors.allowedHeaders = ['']
-    // opts.cors.methods = ['GET', 'POST']
+    // opts.cors.methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
     opts.cors.credentials = false
   }
   if (_.has(opts, 'serveClient')) {
