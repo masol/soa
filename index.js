@@ -184,8 +184,12 @@ async function decorate (fastify, opts = {}) {
   await regSwagger(fastify, clusterName === 'dev', opts)
 
   await extUtil.ext(fastify)
-  // await soa.get('formbody')
   await bootstrap.setup(fastify, opts)
+  if (soa.has('knex')) {
+    fastify.log.info('开始加载src/helper/models中定义的数据库模型')
+    // 不能放在knex中加载，会引发objection互相等待的死锁．
+    await fastify.util.model(path.join(fastify.dirname, 'src', 'helper', 'models'))
+  }
 }
 
 // 首次调用验证才会执行到这里，为ajv添加validator.js中的format.
