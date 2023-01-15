@@ -149,9 +149,6 @@ module.exports.run = async function (fastify, opts = {}) {
   const { soa, runcmd, log, _ } = fastify
   const knex = await soa.get('knex')
   // console.log('opts=', fastify.runcmd)
-  if (fastify.runcmd._ && fastify.runcmd._.length > 0) {
-    fastify.runcmd[fastify.runcmd._[0]] = true
-  }
   const migrate = new Migrate(fastify, opts)
   await migrate.init(fastify)
   const conf = { migrationSource: migrate }
