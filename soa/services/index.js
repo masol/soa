@@ -21,7 +21,7 @@ const internal = {
   oss: true,
   corsess: true,
   socketio: true,
-  corws: true,
+  corsws: true,
   cmds: true
 }
 

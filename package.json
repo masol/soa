@@ -36,6 +36,7 @@
     "mercurius": "^11.4.0",
     "mercurius-logging": "^1.2.0",
     "moment": "^2.29.4",
+    "mqemitter-redis": "^5.0.0",
     "objectmodel": "^4.4.1",
     "qs": "^6.11.0",
     "shelljs": "^0.8.5",

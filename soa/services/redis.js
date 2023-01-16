@@ -68,15 +68,14 @@ async function load (fastify, sdl = {}) {
     client.on('error', async function (err) {
       fastify.log.warn('redis无法连接到服务器,错误:%s', err)
     })
-    await client.ping().catch(err => {
-      console.log('ioredis健康检查错误:', err)
-    })
   }
   const pong = await client.ping().catch(err => {
-    log.debug('redis健康检查错误:', err)
+    log.error('redis健康检查错误:', err)
+    throw err
   })
   if (pong) {
     log.debug('redis health info:%s', pong)
+    client.conf = redisConf
     return { inst: client }
   }
   return { inst: null }

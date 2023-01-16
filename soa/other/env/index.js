@@ -16,7 +16,8 @@ const DefFrameWork = {
   res: false, // 资源存储服务(suoss: sign url oss)
   sess: 'corsess', // session.
   sso: 'passport', // 'keycloak'
-  push: 'corws', // 'uwebsocket','socketio' //corws基于@fastify/websocket和mqemitter-redis.基于BO的对资源命名规则来实现．
+  push: 'corsws', // 'uwebsocket','socketio' //corws基于@fastify/websocket和mqemitter-redis.基于BO的对资源命名规则来实现．
+  media: false, // 'nms'[node-media-server](https://www.npmjs.com/package/node-media-server),'plex','[medooze](https://github.com/medooze/media-server-node)'
   predic: false, // 'mindsdb','mldb','xgboost' //预测服务.基于数据训练或prolog或人工编制的规则．形成virtual table/field的概念．
   // dqm: 'bullmq', // 'bee(https://github.com/bee-queue/bee-queue)','celery(https://docs.celeryq.dev/en/stable/)'  Distributed Queue Management
   p2p: false, // libp2p, webrtc, swarm,tor,bittorrent //p2p存储(区块链).私有可控通过fuse以文件系统方式访问．
