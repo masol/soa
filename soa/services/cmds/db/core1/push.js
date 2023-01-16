@@ -16,11 +16,11 @@ module.exports = function (fastify, opts) {
     async up (knex) {
       await knex.schema
         .createTable(PUSH, function (table) {
-          table.uuid('id', { primaryKey: true }).defaultTo(knex.raw('gen_random_uuid()'))
+          table.increments('id').primary().unsigned()
           // 资源名(主题名)
-          table.string('topic', 128).index()
-          // timestamp:iso秒数
-          table.integer('timestamp').index()
+          table.string('topic', 256).index()
+          // timestamp.
+          table.timestamp('createdAt').notNullable().defaultTo(knex.fn.now())
           // 消息正文(json串，无需搜索)．
           table.text('message')
           // table.foreign('createdBy').references('user.id')
