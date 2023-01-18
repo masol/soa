@@ -25,6 +25,7 @@
     "@graphql-tools/merge": "^8.3.14",
     "@supercharge/goodies": "^1.11.1",
     "blend-promise-utils": "^1.29.0",
+    "crc": "^4.2.0",
     "crypto-random-string": "^5.0.0",
     "glob": "^8.0.3",
     "graphql": "^16.6.0",

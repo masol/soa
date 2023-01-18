@@ -23,6 +23,7 @@ const bootstrap = require('./lib/boot')
 const om = require('objectmodel')
 const moment = require('moment')
 const net = require('net')
+// const crc = require('crc')
 
 const fs = require('fs').promises
 const path = require('path')
@@ -36,6 +37,16 @@ async function getUtil (config) {
   const cryptoRandom = await import('crypto-random-string')
   _.cryptoRandom = cryptoRandom.default
   _.glob = require('glob')
+  _.crc = require('crc')
+  _.simpleHash = str => {
+    let hash = 0
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i)
+      hash = (hash << 5) - hash + char
+      hash &= hash // Convert to 32bit integer
+    }
+    return new Uint32Array([hash])[0].toString(36)
+  }
   const s = require('underscore.string')
   s.v = require('validator')
   if (_.isObject(config)) {

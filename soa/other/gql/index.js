@@ -176,6 +176,7 @@ class Qpl {
     const opts = _.merge({}, this.#conf, options)
     // console.log('this.#schemas=', this.#schemas)
     opts.schema = print(mergeTypeDefs(this.#schemas))
+    opts.allowBatchedQueries = true
     // console.log('opts.schema=', opts.schema)
     // opts.schema = s.trim(this.#schemas.join('\n'))
     if (opts.schema) {

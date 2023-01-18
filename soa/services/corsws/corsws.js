@@ -10,6 +10,7 @@
 // File: corsws
 
 const AllTopic = 'all'
+const LiveHeader = 'set-live'
 
 class SockCtx {
   static #mqemitter
@@ -218,20 +219,33 @@ class CorsWS {
 
   /**
    * 获取topic对应的liveId,以当前数据库中的内容为last.
+   * @param {String} qpl batch下的Query String(ctx.__currentQuery),restful请求，直接传空''即可．
    * @param {String} topic
-   * @param {Interge} last 当前缓冲的最后id.如果是volatile,设置为-2即可．
-   * @returns
+   * @param {FAstifyReply} [reply=null]
+   * @param {Interge} last 当前缓冲的最后id.如果是volatile(忽略缓冲),设置为-2即可．不传值自动获取当前主题的last.
+   * @returns 新增加的liveTk,如果为空，未增加live.
    */
-  async liveId (topic, last) {
-    if (!topic) return
+  async setLive (qpl, topic, reply, last) {
+    const { _ } = global.fastify
+    if (!topic) return ''
     const fastify = global.fastify
     // const last = await this.last(topic)
     if (!fastify._.isNumber(last)) {
       last = await this.last(topic)
     }
     const tkObj = { topic }
+    // 有效的jwt字符集: [a-zA-Z0-9-_.]+  @see https://jwt.io/introduction/
     const token = fastify.jwt.sign(tkObj)
-    return `${last} ${token}`
+    // console.log('last=', last)
+    const qHash = qpl && _.isString(qpl) ? _.simpleHash(qpl.replaceAll(/[\n\r\s,"]/ig, '')) : '0'
+    // lives之间通过逗号(,)分割，qhash,last,token之间通过美元符号($)分割．有效的uri字符集，无效的jwt字符集．
+    const liveTk = `${qHash}$${last}$${token}`
+    if (reply) {
+      const oldlive = reply.getHeader(LiveHeader)
+      const newLive = oldlive ? `${oldlive},${liveTk}` : liveTk
+      reply.header(LiveHeader, newLive)
+    }
+    return liveTk
   }
 
   async last (topic) {
@@ -241,7 +255,9 @@ class CorsWS {
     const Push = ojs.Model.store.push
     if (Push) {
       const result = await Push.query().select('*').modify('last', topic)
-      last = result.id
+      if (result.length > 0) {
+        last = result[0].id
+      }
     }
     return last
   }
