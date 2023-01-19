@@ -26,8 +26,10 @@ class SockCtx {
     return !!SockCtx.#mqemitter
   }
 
+  // @msg format see https://github.com/mcollina/mqemitter-redis#example
   static emit (msg) {
     return new Promise((resolve) => {
+      // console.log('emit msg=', msg)
       SockCtx.#mqemitter.emit(msg, resolve)
     })
   }
@@ -43,7 +45,28 @@ class SockCtx {
       conf.db++
     }
     SockCtx.#mqemitter = redisEmitter(conf)
-    console.log('redis.conf', redis.conf)
+    // console.log('redis.conf', redis.conf)
+  }
+
+  async #doTrans (tkCtx, payload) {
+    if (tkCtx.trans) {
+      console.error('个性化过滤尚未实现!')
+    }
+    return payload
+  }
+
+  // 接收到内部emit通知事件之后的处理，不再保存targetSocket, topicToken,而是将其当作参数传递下来．
+  async #onEmitted (targetSocket, tkCtx, message, cb) {
+    // console.log('onEmitted topicToken=', tkCtx)
+    // console.log('onEmitted topic=', message.topic)
+    // console.log('onEmitted  payload=', message.payload)
+    const payload = await this.#doTrans(tkCtx, JSON.parse(message.payload))
+    targetSocket.send(JSON.stringify({
+      op: 'live',
+      topic: tkCtx.tkHash,
+      payload
+    }))
+    cb()
   }
 
   async add (addObj, socket) {
@@ -52,11 +75,12 @@ class SockCtx {
     // const last = addObj.last || 0
     let handler = this.#topics[topic]
     if (!handler) {
-      if (!this.#topics[AllTopic]) {
-        await this.add({ topic: AllTopic }, socket)
-      }
-      handler = _.bind(socket.send, socket)
+      handler = _.bind(this.#onEmitted, this, socket, addObj)
       this.#topics[topic] = handler
+      if (!this.#topics[AllTopic]) {
+        await this.add({ topic: AllTopic, token: addObj.token }, socket)
+      }
+      // console.log('added on topic:', topic)
       SockCtx.#mqemitter.on(topic, handler)
       // 开始回应last,如果有的话．(诸如all这样的通路是不记录的，只有实时信息，错过的会丢弃)
       if (_.isNumber(addObj.last)) {
@@ -65,8 +89,9 @@ class SockCtx {
         if (!Push) {
           log.error('未注册Live记录表!')
         } else {
-          const result = await Push.query().select('*').modify('topic', { topic, last: addObj.last })
-          console.log('send result to socket!!=', result)
+          await Push.query().select('*').modify('topic', { topic, last: addObj.last })
+          // const result = await Push.query().select('*').modify('topic', { topic, last: addObj.last })
+          // console.log('send result to socket!!=', result)
         }
       }
     }
@@ -77,6 +102,7 @@ class SockCtx {
     const handler = this.#topics[topic]
     if (handler) {
       delete this.#topics[topic]
+      // console.log('remove topic:', topic)
       SockCtx.#mqemitter.removeListener(topic, handler)
     }
   }
@@ -84,6 +110,7 @@ class SockCtx {
   rmAll (fastify) {
     const { _ } = fastify
     _.each(this.#topics, (handler, topic) => {
+      // console.log('remove topic:', topic)
       SockCtx.#mqemitter.removeListener(topic, handler)
     })
     this.#topics = {}
@@ -112,23 +139,19 @@ class CorsWS {
 
   static async handler (connection /* SocketStream */, req /* FastifyRequest */) {
     const fastify = global.fastify
-    const { error } = fastify
+    const { error, _ } = fastify
     if (!SockCtx.inited) {
       await SockCtx.$init(fastify)
     }
     const that = CorsWS.inst
     that.connections.add(connection)
-    let token, timerId, last
-    if (req.headers && req.headers.authorization) {
-      const parts = req.headers.authorization.split(' ')
-      if (parts.length === 2) {
-        const scheme = parts[0]
-        if (/^-?\d+$/i.test(scheme)) {
-          token = parts[1]
-          last = parseInt(scheme)
-        }
-      }
-    }
+
+    // 从req.url中获取token,last信息．
+    let token = req.query.topic
+    const last = parseInt(req.query.last) || -1
+    let timerId
+    // console.log('req.query=', req.query)
+    // console.log('token=', token)
     connection.socket.ctx = connection.socket.ctx || new SockCtx()
 
     const socket = connection.socket
@@ -136,12 +159,14 @@ class CorsWS {
 
     if (token) {
       const tkObj = fastify.jwt.decode(token)
+      // console.log('tkObj=', tkObj)
       if (!tkObj.topic) {
         token = undefined
       } else {
         if (last >= 0) {
           tkObj.last = last
         }
+        tkObj.tkHash = _.simpleHash(token)
         ctx.add(tkObj, socket)
       }
     }
@@ -165,6 +190,7 @@ class CorsWS {
           case 'add': // 建立一个live通路．
             {
               const addObj = jwt.decode(msg.topic)
+              addObj.tkHash = _.simpleHash(msg.topic)
               console.log('addObj=', addObj)
               if (timerId) {
                 clearTimeout(timerId)
@@ -189,15 +215,15 @@ class CorsWS {
       const ctx = socket.ctx
       delete socket.ctx
       console.log('socket close event!')
-      return ctx.rmAll()
+      return ctx.rmAll(fastify)
     })
 
     // console.log('request.session=', req.session)
   }
 
-  async emit (msg) {
+  async #updateLast (topic, payload, volatile) {
     let last = -1
-    if (!msg.volatile) { // 不保存至数据库．
+    if (!volatile) { // 不保存至数据库．
       const { soa, log } = global.fastify
       const ojs = await soa.get('objection')
       const Push = ojs.Model.store.push
@@ -205,16 +231,34 @@ class CorsWS {
         log.error('未注册Push表')
       } else {
         const result = await Push.query().insert({
-          topic: msg.topic,
-          message: JSON.stringify(msg.message)
+          topic,
+          message: JSON.stringify(payload)
         })
         last = result.id
       }
-      SockCtx.emit(msg)
     } else {
       last = -2 // volatile msg
     }
     return last
+  }
+
+  /**
+   * 通知所有关注人，主题对应资源发生变更．在发生变更处调用即可．
+   * @param {string} topic 通知主题．
+   * @param {Object} payload 通知内容，参考diff.
+   * @param {boolean} volatile =true则不保存历史记录，默认保存
+   */
+  async update (topic, payload, volatile = false) {
+    const { _, error } = global.fastify
+    if (!_.isObject(payload) || !topic) {
+      throw new error.PreconditionRequiredError('payload must be object and topic must has value.')
+    }
+    const last = await this.#updateLast(topic, payload, volatile)
+    payload.last = last
+    SockCtx.emit({
+      topic,
+      payload: JSON.stringify(payload)
+    })
   }
 
   /**
@@ -231,7 +275,7 @@ class CorsWS {
     const fastify = global.fastify
     // const last = await this.last(topic)
     if (!fastify._.isNumber(last)) {
-      last = await this.last(topic)
+      last = await this.#last(topic)
     }
     const tkObj = { topic }
     // 有效的jwt字符集: [a-zA-Z0-9-_.]+  @see https://jwt.io/introduction/
@@ -248,7 +292,7 @@ class CorsWS {
     return liveTk
   }
 
-  async last (topic) {
+  async #last (topic) {
     let last = -1
     const { soa } = global.fastify
     const ojs = await soa.get('objection')

@@ -52,7 +52,7 @@ class SessMan {
       if (redisClient) {
         this.#store = new RedisStore({ client: redisClient })
         this.#store._getTTL = (sess) => {
-          console.log('call into _getTTL:')
+          // console.log('call into _getTTL:')
           let ttl
           const meta = sess.meta()
           if (sess && _.isObject(meta) && _.isNumber(meta.exp)) {
