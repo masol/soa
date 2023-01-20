@@ -12,6 +12,7 @@
 const AllTopic = 'all'
 const LiveHeader = 'set-live'
 
+// 对应一个socket的ctx.
 class SockCtx {
   static #mqemitter
   #topics
@@ -69,36 +70,61 @@ class SockCtx {
     cb()
   }
 
-  async add (addObj, socket) {
+  hasAdd (topic) {
+    return this.#topics[topic]
+  }
+
+  async add (liveObj, socket) {
+    // console.log('add liveObj:', liveObj)
+    if (this.hasAdd(liveObj.topic)) {
+      // console.log('already added')
+      return false
+    }
     const { _, soa, log } = global.fastify
-    const topic = addObj.topic
+    const topic = liveObj.topic
     // const last = addObj.last || 0
     let handler = this.#topics[topic]
     if (!handler) {
-      handler = _.bind(this.#onEmitted, this, socket, addObj)
+      // console.log('begin adding...')
+      handler = _.bind(this.#onEmitted, this, socket, liveObj) // 需要deepClone,防止其它环节修改liveObj?
       this.#topics[topic] = handler
       if (!this.#topics[AllTopic]) {
-        await this.add({ topic: AllTopic, token: addObj.token }, socket)
+        await this.add({ topic: AllTopic, tkHash: null }, socket)
       }
       // console.log('added on topic:', topic)
       SockCtx.#mqemitter.on(topic, handler)
       // 开始回应last,如果有的话．(诸如all这样的通路是不记录的，只有实时信息，错过的会丢弃)
-      if (_.isNumber(addObj.last)) {
+      if (_.isNumber(liveObj.last)) {
         const ojs = await soa.get('objection')
         const Push = ojs.Model.store.push
         if (!Push) {
           log.error('未注册Live记录表!')
         } else {
-          await Push.query().select('*').modify('topic', { topic, last: addObj.last })
+          const emitLast = await Push.query().select('*').modify('topic', { topic, last: liveObj.last })
           // const result = await Push.query().select('*').modify('topic', { topic, last: addObj.last })
           // console.log('send result to socket!!=', result)
+          // 开始检查并处理last.
+          // console.log('emitLast=', emitLast)
+          // 有消息需要发送．
+          if (emitLast.length > 0) {
+            const topic = liveObj.topic
+            setImmediate(() => {
+              SockCtx.emit({
+                topic,
+                payload: JSON.stringify(emitLast)
+              })
+            })
+          }
         }
       }
+      return true
     }
+    return false
   }
 
   rm (rmObj) {
     const topic = rmObj.topic
+    // console.log('this.#topics=', this.#topics)
     const handler = this.#topics[topic]
     if (handler) {
       delete this.#topics[topic]
@@ -182,27 +208,37 @@ class CorsWS {
         brokeConn()
       }
     }
-    connection.socket.on('message', message => {
+    connection.socket.on('message', async message => {
       const { log, jwt } = fastify
       try {
-        const msg = JSON.parse(message)
-        switch (msg.op) {
-          case 'add': // 建立一个live通路．
+        const pkg = JSON.parse(message)
+        console.log('recieved pkg=', pkg)
+        switch (pkg.op) {
+          case 'live': // 建立一个live通路．
             {
-              const addObj = jwt.decode(msg.topic)
-              addObj.tkHash = _.simpleHash(msg.topic)
-              console.log('addObj=', addObj)
+              const liveObj = jwt.decode(pkg.msg.topic)
+              liveObj.tkHash = _.simpleHash(pkg.msg.topic)
+              if (!liveObj.topic) { // token中未包含topic.忽略此消息．
+                log.error('接收到未包含topic的live请求,忽略请求．')
+                return
+              }
+              // console.log('liveObj=', liveObj)
               if (timerId) {
                 clearTimeout(timerId)
                 timerId = undefined
               }
-              ctx.add(addObj, socket)
+              ctx.add(liveObj, socket)
             }
             break
           case 'rm': // 关闭一个live通路．
             {
-              const rmObj = jwt.decode(msg.topic)
-              console.log('rmObj=', rmObj)
+              console.log('pkg.msg.topic=', pkg.msg.topic)
+              const rmObj = jwt.decode(pkg.msg.topic)
+              if (!rmObj.topic) { // token中未包含topic.忽略此消息．
+                log.error('接收到未包含topic的rm请求,忽略请求．')
+                return
+              }
+              // console.error('not implement remove live: rmObj=', rmObj)
               ctx.rm(rmObj, socket)
             }
             break
@@ -290,6 +326,18 @@ class CorsWS {
       reply.header(LiveHeader, newLive)
     }
     return liveTk
+  }
+
+  // 获取全部晚于last的topic
+  async #afterLast (topic, last) {
+    let ret = []
+    const { soa } = global.fastify
+    const ojs = await soa.get('objection')
+    const Push = ojs.Model.store.push
+    if (Push) {
+      ret = await Push.query().select('*').modify('after', topic, last)
+    }
+    return ret
   }
 
   async #last (topic) {

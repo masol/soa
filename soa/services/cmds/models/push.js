@@ -24,7 +24,7 @@ module.exports.setup = async function (fastify, ojs) {
           if (args.topic && _.isString(args.topic)) {
             builder.where('topic', args.topic)
             // console.log('query suc=', builder)
-            if (_.isNumber(args.last) && args.last >= 0) {
+            if (_.isNumber(args.last) && args.last >= -1) {
               builder.where('id', '>', args.last)
               // console.log('query limit=', builder)
             }
