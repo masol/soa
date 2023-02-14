@@ -22,7 +22,8 @@ const internal = {
   corsess: true,
   socketio: true,
   corsws: true,
-  cmds: true
+  cmds: true,
+  lowdb: true
 }
 
 async function load (fastify, srvName, sdl = {}) {

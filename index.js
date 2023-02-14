@@ -203,6 +203,11 @@ async function decorate (fastify, opts = {}) {
     // 不能放在knex中加载，会引发objection互相等待的死锁．
     await fastify.util.model(path.join(fastify.dirname, 'src', 'helper', 'models'))
   }
+  // 开始扫描本地的gpl服务目录．
+  if (clusterName === 'dev' && soa.has('gql')) {
+    const gql = await soa.get('gql')
+    await gql.scan(path.join(__dirname, 'lib', 'dev', 'gql'))
+  }
 }
 
 // 首次调用验证才会执行到这里，为ajv添加validator.js中的format.

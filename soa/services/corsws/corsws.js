@@ -31,7 +31,14 @@ class SockCtx {
   static emit (msg) {
     return new Promise((resolve) => {
       // console.log('emit msg=', msg)
-      SockCtx.#mqemitter.emit(msg, resolve)
+      // console.log('SockCtx.#mqemitter=,', SockCtx.#mqemitter)
+      if (!SockCtx.inited) {
+        SockCtx.$init(global.fastify).then(() => {
+          SockCtx.#mqemitter.emit(msg, resolve)
+        })
+      } else {
+        SockCtx.#mqemitter.emit(msg, resolve)
+      }
     })
   }
 

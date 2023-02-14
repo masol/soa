@@ -163,8 +163,6 @@ class Qpl {
 
   async scan (baseDir = 'src/helper/gql') {
     baseDir = path.isAbsolute(baseDir) ? baseDir : path.join(this.#fastify.dirname, baseDir)
-    // 支持扫描schemas/gql中定义的schemas.
-    await this.scanSchemas(path.join(this.#fastify.dirname, 'src', 'helper', 'schemas', 'gql'))
     await this.scanSchemas(path.join(baseDir, 'schemas'))
     await this.scanGqls(path.join(baseDir, 'schemas'))
     await this.scanResolvers(path.join(baseDir, 'resolvers'))
