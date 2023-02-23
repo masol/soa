@@ -1,0 +1,58 @@
+type Query {
+  infos: [Info]
+  types: [Type]
+  modifiers: [Modifier]
+}
+
+union Entity = Info | Modifier | Type
+
+enum Entype {
+  TYPE
+  INFO
+  MODIFIER
+}
+
+interface EntityIF {
+  id: ID!
+  entype: Entype!
+}
+
+type Info implements EntityIF { #信息代表了
+  id: ID!
+  entype: Entype!
+  name: String #信息名称(也就是满意集合名[对象名],具化为一个类型子集与参数)
+  type: String #可能集合名(类型)
+  modifies: String #(可能=>满意)选择器名称或表达式．(留空通常用于用户确定[form表单类])
+  #observer: String #观察者.(访问用户)
+  #URL值说明: $comp开头的URL指Comp,映射为$lib/comps/．其它值正常URL,说明是页面．$开头的字符串被保留．
+  listPage: String #满意集合列表页．
+  detailPage: String #满意集合详情页．
+  #Object Def放在这里．(不再使用name字段外联)
+  count: String #允许数量．默认0．inf代表无穷．
+  order: Boolean #是否关注顺序．
+  fields: [String] #从类型中选择出的字段．
+}
+
+type Modifier implements EntityIF {
+  id: ID!
+  entype: Entype!
+  name: String #修改器名称．
+  args: [Info] #输入信息集.
+  exp: String #表达式JSON串．
+}
+
+type Type implements EntityIF {
+  id: ID!
+  entype: Entype!
+  name: String
+  fields: [Field]
+}
+
+#union FieldType = Type | String
+type Field {
+  name: String
+  type: Type
+  count: String #允许数量．默认0．inf代表无穷．
+  order: Boolean #是否关注顺序．
+  #其它细节特性是否需要？例如访问权限等,还是收敛可能性之后，由人工修改？
+}

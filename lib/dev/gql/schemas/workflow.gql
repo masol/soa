@@ -25,29 +25,16 @@ type Behave {
   id: ID
   name: String #行为名称．
   desc: String #行为简介
-  role: String #执行人名称
-  roleCond: String #执行人表达式(以$开头的为快捷表达式,否则是命名函数)
-  info: String #信息名称．(或ID)
+  roleInfo: String #执行人信息.
+  objInfo: String #宾语信息．
   next: [NextBH] #下一行为列表(FSM事件的定义)
   createdAt: Int
   modifiedAt: Int
 }
 
-type Info { #信息代表了
-  id: ID
-  name: String #信息名称(同时可视为ID)
-  possibles: String #可能集合名(类型)
-  #observer: String #观察者.(访问用户)
-  #satisfied: String #满意集合名(合并为name)
-  count: String #(true/false)可能集合为多项．数字代表了可能及和的数量，其它代表了表达式来确定结果数量(相当于limit(n))
-  modifies: String #(可能=>满意)选择器名称或表达式．
-  listPage: String #满意集合列表页．
-  detailPage: String #满意集合详情页．
-}
-
 type NextBH {
   id: ID
-  name: String #条件名
-  cond: String #提交信息($为库信息，例如支付)[包括了提交类型，选择器(更新哪个/些)，留空新建]
+  name: String #提交信息($为库信息，例如支付)[包括了提交类型，选择器(更新哪个/些)，留空新建]
+  cond: String #结果条件分支(未给出的结果都会保留当前状态不变)
   to: ID #下一行为，如果不给，则为后续行为．
 }
