@@ -36,7 +36,7 @@ function appendHeaders (_, orig, hArr) {
   }
   return srcArr.join(',')
 }
-const ExposeHeaders = ['set-token', 'set-live']
+const ExposeHeaders = ['set-token', 'set-live', 'live-url']
 const AllowHeaders = ['authorization', 'content-type', 'vid']
 const internal = {
   cors: async (fastify, srvName, sdl) => {
