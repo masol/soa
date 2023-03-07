@@ -13,7 +13,7 @@ const DefFrameWork = {
   ftxt: 'elastic', // full-text search service. 'solr','zinc'...
   db: 'knex',
   kv: 'redis',
-  res: false, // 资源存储服务(suoss: sign url oss)
+  res: 'storage', // 资源存储服务(storage)
   sess: 'corsess', // session.
   sso: 'passport', // 'keycloak'
   push: 'corsws', // 'uwebsocket','socketio' //corws基于@fastify/websocket和mqemitter-redis.基于BO的对资源命名规则来实现．

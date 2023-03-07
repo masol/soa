@@ -23,21 +23,26 @@ const internal = {
   socketio: true,
   corsws: true,
   cmds: true,
-  lowdb: true
+  lowdb: true,
+  storage: true
 }
 
 async function load (fastify, srvName, sdl = {}) {
   const { log, _ } = fastify
   if (internal[srvName]) {
     try {
-      const service = require(`./${srvName}`)
-      if (service && _.isFunction(service.load)) {
-        if (!fastify.runcmd || fastify.runcmd.verbose) {
-          log.info('加载%s服务,启动参数:%o', srvName, sdl)
+      try {
+        const service = require(`./${srvName}`)
+        if (service && _.isFunction(service.load)) {
+          if (!fastify.runcmd || fastify.runcmd.verbose) {
+            log.info('加载%s服务,启动参数:%o', srvName, sdl)
+          }
+          return await service.load(fastify, sdl)
+        } else {
+          log.error('获取默认服务%s时发生内部错误:未实现服务加载', srvName)
         }
-        return await service.load(fastify, sdl)
-      } else {
-        log.error('获取默认服务%s时发生内部错误:未实现服务加载', srvName)
+      } catch (e) {
+        log.error(`服务${srvName}加载错误:%s`, e)
       }
     } catch (e) {
       log.error('获取默认服务%s时发生错误:%s', srvName, e)

@@ -166,6 +166,7 @@ async function decorate (fastify, opts = {}) {
       }
     }
     const s = util.s
+    fastify.decorate('domain', redirectDomain)
     fastify.addHook('onRequest', (request, reply, done) => {
       const host = s.trim(s.strLeft(request.hostname, ':'))
       // console.log("request host=", host)

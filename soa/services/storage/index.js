@@ -9,39 +9,41 @@
 // Created On : 26 Feb 2023 By 李竺唐 of 北京飞鹿软件技术研究院
 // File: index
 
-const Storage = require('./storage')
+const StorageProxy = require('./storage')
+const path = require('path')
 
-async function importLocal (packageName) {
-  const module = await import(packageName)
+async function importLocal (fastify, packageName) {
+  const module = require(packageName).default
   return (module && module.__esModule && module.default) ? module.default : module
 }
 
-module.exports.load = async function (fastify, sdl = {}) {
-  const { _ } = fastify
-  const conf = _.isObject(sdl.conf)
-    ? _.cloneDeep(sdl.conf)
-    : {
-        driver: 'LocalDriver',
-        name: 'local',
-        root: '/srv/webapi/res'
-      }
-
+async function loadCfg (fastify, conf, sdl) {
+  const { _, fse, error } = fastify
   if (_.isString(conf.driver)) {
+    conf.drvName = conf.driver
     switch (conf.driver) {
       case 'LocalDriver':
-        conf.driver = await importLocal('@file-storage/local')
+        conf.driver = await importLocal(fastify, '@file-storage/local')
+        if (!conf.root) {
+          throw new error.PreconditionRequiredError('本地存储必须指定root参数.')
+        }
+        if (!path.isAbsolute(conf.root)) {
+          conf.root = path.join(fastify.dirname, conf.root)
+        }
+        await fse.ensureDir(conf.root)
+        // console.log('conf.root=', conf.root)
         break
       case 'S3Driver':
-        conf.driver = await importLocal('@file-storage/s3')
+        conf.driver = await importLocal(fastify, '@file-storage/s3')
         break
       case 'GoogleCloudStorageDriver':
-        conf.driver = await importLocal('@file-storage/gcs')
+        conf.driver = await importLocal(fastify, '@file-storage/gcs')
         break
       case 'FtpDriver':
-        conf.driver = await importLocal('@file-storage/ftp')
+        conf.driver = await importLocal(fastify, '@file-storage/ftp')
         break
       case 'SftpDriver':
-        conf.driver = await importLocal('@file-storage/sftp')
+        conf.driver = await importLocal(fastify, '@file-storage/sftp')
         break
     }
   }
@@ -56,7 +58,7 @@ module.exports.load = async function (fastify, sdl = {}) {
         }
         switch (plg) {
           case 'ImageManipulation':
-            conf.plugins[i] = await importLocal('@file-storage/image-manipulation')
+            conf.plugins[i] = await importLocal(fastify, '@file-storage/image-manipulation')
             if (plgConf) {
               conf.plugins[i].conf(plgConf)
             }
@@ -65,7 +67,37 @@ module.exports.load = async function (fastify, sdl = {}) {
       }
     }
   }
+}
 
-  const inst = new Storage(conf)
-  return { inst }
+module.exports.load = async function (fastify, sdl = {}) {
+  const { _ } = fastify
+  const pubCfg = _.isObject(sdl.pub)
+    ? _.cloneDeep(sdl.pub)
+    : {
+        driver: 'LocalDriver',
+        name: 'local',
+        root: 'pubres',
+        base: '/pubres'
+      }
+  await loadCfg(fastify, pubCfg, sdl)
+
+  const privCfg = _.isObject(sdl.priv)
+    ? _.cloneDeep(sdl.pub)
+    : {
+        driver: 'LocalDriver',
+        name: 'local',
+        root: 'privres',
+        base: '/privres'
+      }
+  await loadCfg(fastify, privCfg, sdl)
+  const pub = new StorageProxy(pubCfg, fastify)
+  const priv = new StorageProxy(privCfg, fastify)
+  await pub.init(fastify)
+  await priv.init(fastify)
+  return {
+    inst: {
+      pub,
+      priv
+    }
+  }
 }
