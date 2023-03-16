@@ -16,6 +16,7 @@ type Workflow {
   desc: String
   batch: Boolean #批量工作(例如：同时购买多个商品)．
   info: String #信息名(流程对应的信息)
+  appl: String #对角色的应用场合(application)．填入角色名，多个角色以逗号分割．空表示不是一个应用场合．anonymous代表匿名用户.
   behaves: [Behave]
   createdAt: Int
   modifiedAt: Int
