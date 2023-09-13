@@ -11,7 +11,6 @@
 
 const Storage = require('@file-storage/core').default
 const url = require('node:url')
-const urlJoin = require('url-join').default
 
 class StorageProxy {
   #base
@@ -46,11 +45,12 @@ class StorageProxy {
     }
 
     Storage.config(opt)
-    console.log('Storage=', Storage)
+    // console.log('Storage=', Storage)
   }
 
   // 使用crypto.randomUUID()来创建uuid.
   async readURL (uuid, opt = {}) {
+    const urlJoin = (await import('url-join')).default
     urlJoin(this.#url)
   }
 
