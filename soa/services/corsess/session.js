@@ -13,6 +13,7 @@ let CorsessInst
 
 class Session {
   #initData
+  // meta会被签名送往客户端．必定是一个对象，其中id呼应了store中的key.这里除meta外,其它字段是自定义的，整体会被保存进store.
   #meta
   #hasToken
 
@@ -49,7 +50,50 @@ class Session {
   }
 
   reload (callback) {
-    throw new Error('corsession::reload NOT IMPLEMENT')
+    const that = this
+    if (callback) {
+      CorsessInst.$load(that.id).then(result => {
+        for (const r in result) {
+          that[r] = result[r]
+        }
+        callback(null)
+      }).catch(err => {
+        callback(err)
+      })
+    } else {
+      return CorsessInst.$load(that.id).then(result => {
+        for (const r in result) {
+          that[r] = result[r]
+        }
+      })
+    }
+    // throw new Error('corsession::reload NOT IMPLEMENT')
+  }
+
+  // 不完全新建，而是简单清空除meta外的数据.
+  // 参考fastify-session的对应实现： https://github.com/fastify/session/blob/master/lib/session.js#L65
+  regenerate (keys, callback) {
+    if (typeof keys === 'function') {
+      callback = keys
+      keys = undefined
+    }
+    const session = this
+
+    for (const r in session) {
+      delete session[r]
+    }
+
+    if (Array.isArray(keys)) {
+      for (const key of keys) {
+        session.set(key, this[key])
+      }
+    }
+
+    return session.save(callback)
+  }
+
+  data () {
+    return this
   }
 
   destroy (callback) {
